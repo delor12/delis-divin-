@@ -50,6 +50,10 @@ public class UserServiceImpl implements UserService {
         AppUser user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userDetails.getId()));
 
+        if (user.getRole() == com.delisdivin.entity.Role.CLIENT) {
+            throw new BadRequestException("Les clients ne peuvent pas se connecter à l'espace personnel.");
+        }
+
         return new AuthResponse(jwt, refresh, mapper.toDto(user));
     }
 

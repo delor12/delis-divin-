@@ -55,7 +55,7 @@ public class ApiController {
 
     // --- Restaurant Creation (Public for Sign-up) ---
 
-    @PostMapping("/public/restaurants")
+    @PostMapping("/super-admin/restaurants")
     public ResponseEntity<RestaurantDTO> createRestaurant(@Valid @RequestBody RestaurantDTO restaurantDTO) {
         return ResponseEntity.ok(restaurantService.createRestaurant(restaurantDTO));
     }
@@ -129,7 +129,7 @@ public class ApiController {
 
     // --- Orders & Checkout ---
 
-    @PostMapping("/restaurant/{restaurantId}/orders")
+    @PostMapping("/public/restaurant/{restaurantId}/orders")
     public ResponseEntity<OrderDTO> createOrder(
             @PathVariable Long restaurantId,
             @Valid @RequestBody OrderDTO orderDTO) {

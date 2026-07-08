@@ -43,13 +43,13 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Public files
-                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/", "/login", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 // Public views and APIs for customers
                 .requestMatchers("/restaurant/**", "/api/public/**", "/ws/**").permitAll()
                 // Auth APIs
                 .requestMatchers("/api/auth/**").permitAll()
-                // Super Admin
-                .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
+                // Super Admin / Register
+                .requestMatchers("/super-admin/**", "/api/super-admin/**", "/register").hasRole("SUPER_ADMIN")
                 // Restaurant Admin
                 .requestMatchers("/restaurant-admin/**").hasRole("RESTAURANT_ADMIN")
                 // Kitchen (Chef/Admin)

@@ -129,8 +129,10 @@
                                         </div>
                                         <div class="d-flex align-items-center justify-content-between mt-3">
                                             <span class="fs-5 fw-bold text-primary" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} + ' FCFA'"></span>
-                                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm"
-                                                    th:onclick="'addToCart(' + ${product.id} + ', \'' + ${#strings.escapeJavaScript(product.name)} + '\', ' + ${product.price} + ')'">
+                                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm btn-add-to-cart"
+                                                    th:data-id="${product.id}"
+                                                    th:data-name="${product.name}"
+                                                    th:data-price="${product.price}">
                                                 <i class="bi bi-plus-lg me-1"></i> Ajouter
                                             </button>
                                         </div>
@@ -219,6 +221,16 @@
     <script th:inline="javascript">
         let cart = [];
         const restaurantId = [[${restaurant.id}]];
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-add-to-cart');
+            if (btn) {
+                const id = parseInt(btn.getAttribute('data-id'));
+                const name = btn.getAttribute('data-name');
+                const price = parseFloat(btn.getAttribute('data-price'));
+                addToCart(id, name, price);
+            }
+        });
 
         function addToCart(id, name, price) {
             const existing = cart.find(item => item.id === id);
@@ -338,7 +350,7 @@
                 }))
             };
 
-            fetch(`/api/restaurant/${restaurantId}/orders`, {
+            fetch(`/api/public/restaurant/${restaurantId}/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
