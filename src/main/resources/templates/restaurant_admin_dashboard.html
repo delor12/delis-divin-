@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Admin - Delis Divin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        .main-section {
+            display: none;
+        }
+        .main-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="#" class="sidebar-logo">
+            <i class="bi bi-egg-fried"></i>
+            <span th:text="${restaurant.name}">Gérant</span>
+        </a>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="sidebar-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('products')"><i class="bi bi-egg-fried"></i><span>Menu & Stocks</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('categories')"><i class="bi bi-tags"></i><span>Catégories</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('employees')"><i class="bi bi-people"></i><span>Employés</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('orders')"><i class="bi bi-receipt"></i><span>Commandes</span></a></li>
+            <li><hr class="my-2 text-muted"></li>
+            <li><a href="/login" class="sidebar-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span>Déconnexion</span></a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- SECTION: DASHBOARD -->
+        <div id="dashboardSection" class="main-section active">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="fw-bold text-dark">Espace Resto Administrateur</h2>
+                    <p class="text-muted mb-0">Suivi des performances et de l'activité commerciale en temps réel</p>
+                </div>
+                <div>
+                    <a href="/restaurant-admin/report/excel" class="btn btn-outline-primary rounded-pill px-4 me-2"><i class="bi bi-file-earmark-excel me-2"></i>Rapport Excel</a>
+                </div>
+            </header>
+
+            <!-- Metrics Row -->
+            <section class="row g-4 mb-5">
+                <div class="col-md-6 col-lg-3">
+                    <div class="metric-box">
+                        <div>
+                            <span class="text-muted small fw-bold">Chiffre d'Affaires</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'POINT', 0, 'COMMA')} + ' F'">0 F</h3>
+                        </div>
+                        <div class="metric-icon"><i class="bi bi-cash-coin"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="metric-box">
+                        <div>
+                            <span class="text-muted small fw-bold">Revenu du Mois</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1" th:text="${#numbers.formatDecimal(monthRevenue, 0, 'POINT', 0, 'COMMA')} + ' F'">0 F</h3>
+                        </div>
+                        <div class="metric-icon"><i class="bi bi-wallet2"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="metric-box">
+                        <div>
+                            <span class="text-muted small fw-bold">Total Commandes</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1" th:text="${totalOrders}">0</h3>
+                        </div>
+                        <div class="metric-icon"><i class="bi bi-receipt"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="metric-box">
+                        <div>
+                            <span class="text-muted small fw-bold">Commandes Actives</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1 text-primary" th:text="${activeOrders}">0</h3>
+                        </div>
+                        <div class="metric-icon"><i class="bi bi-bell"></i></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart & Top Products -->
+            <div class="row g-4 mb-5">
+                <div class="col-lg-8">
+                    <div class="card premium-card p-4">
+                        <h5 class="fw-bold text-primary mb-4">Évolution du Chiffre d'Affaires (Hebdomadaire)</h5>
+                        <canvas id="revenueChart" height="280"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card premium-card p-4 h-100">
+                        <h5 class="fw-bold text-primary mb-4">Top 5 Ventes</h5>
+                        <div class="d-flex flex-column gap-3">
+                            <div th:each="prod : ${topProducts}" class="d-flex align-items-center justify-content-between border-bottom pb-2">
+                                <div>
+                                    <h6 class="mb-0 fw-bold" th:text="${prod.name}">Dish</h6>
+                                    <span class="text-muted small">Quantité vendue</span>
+                                </div>
+                                <span class="badge bg-primary rounded-pill p-2" th:text="${prod.quantity}">10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: PRODUCTS -->
+        <div id="productsSection" class="main-section">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="fw-bold text-dark">Menu et Gestion des Stocks</h3>
+                <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="bi bi-plus-lg me-1"></i>Ajouter Produit</button>
+            </header>
+
+            <div class="card premium-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Prix</th>
+                                <th>Stock Restant</th>
+                                <th>Disponible</th>
+                                <th>Boisson/Dessert</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="prod : ${products}">
+                                 <td class="fw-bold text-dark">
+                                     <div class="d-flex align-items-center gap-3">
+                                         <img th:src="${prod.imageUrl != null && !#strings.isEmpty(prod.imageUrl)} ? ${prod.imageUrl} : '/images/menu DM.jpg'" 
+                                              style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" alt="Product">
+                                         <span th:text="${prod.name}">Plat</span>
+                                     </div>
+                                 </td>
+                                <td th:text="${prod.categoryName}">Entrée</td>
+                                <td th:text="${#numbers.formatDecimal(prod.price, 0, 'POINT', 0, 'COMMA')} + ' FCFA'">1500 FCFA</td>
+                                <td>
+                                    <span class="badge" th:classappend="${prod.stockQuantity < 10} ? 'bg-danger' : 'bg-success'" th:text="${prod.stockQuantity}">10</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${prod.available} ? 'bg-success' : 'bg-secondary'" th:text="${prod.available} ? 'Oui' : 'Non'">Oui</span>
+                                </td>
+                                <td>
+                                    <span th:if="${prod.beverage}" class="badge bg-info">Boisson</span>
+                                    <span th:if="${prod.dessert}" class="badge bg-warning">Dessert</span>
+                                    <span th:if="${!prod.beverage && !prod.dessert}" class="text-muted">-</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-outline-danger btn-sm rounded-circle" th:onclick="'deleteProduct(' + ${prod.id} + ')'"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: CATEGORIES -->
+        <div id="categoriesSection" class="main-section">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="fw-bold text-dark">Catégories de Produits</h3>
+                <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addCategoryModal"><i class="bi bi-plus-lg me-1"></i>Ajouter Catégorie</button>
+            </header>
+
+            <div class="card premium-card p-4" style="max-width: 600px;">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th>Ordre</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="cat : ${categories}">
+                                <td class="fw-bold text-dark" th:text="${cat.name}">Category</td>
+                                <td class="small text-muted" th:text="${cat.description}">Desc</td>
+                                <td th:text="${cat.displayOrder}">0</td>
+                                <td>
+                                    <button class="btn btn-outline-danger btn-sm rounded-circle" th:onclick="'deleteCategory(' + ${cat.id} + ')'"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: EMPLOYEES -->
+        <div id="employeesSection" class="main-section">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="fw-bold text-dark">Gestion de l'Équipe</h3>
+                <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addEmployeeModal"><i class="bi bi-plus-lg me-1"></i>Enrôler un Employé</button>
+            </header>
+
+            <div class="card premium-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Nom Complet</th>
+                                <th>Identifiant</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Téléphone</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="emp : ${employees}">
+                                <td class="fw-bold text-dark" th:text="${emp.firstName} + ' ' + ${emp.lastName}">Jean</td>
+                                <td th:text="${emp.username}">username</td>
+                                <td th:text="${emp.email}">email@gmail.com</td>
+                                <td>
+                                    <span class="badge bg-light text-primary border border-primary" th:text="${emp.role}">SERVER</span>
+                                </td>
+                                <td th:text="${emp.phone}">+221 77...</td>
+                                <td>
+                                    <span class="badge" th:classappend="${emp.active} ? 'bg-success' : 'bg-danger'" th:text="${emp.active} ? 'Actif' : 'Inactif'">Actif</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: ORDERS -->
+        <div id="ordersSection" class="main-section">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="fw-bold text-dark">Historique des Commandes</h3>
+            </header>
+
+            <div class="card premium-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Commande</th>
+                                <th>Client</th>
+                                <th>Type</th>
+                                <th>Statut</th>
+                                <th>Montant</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ord : ${orders}">
+                                <td class="fw-bold text-dark" th:text="'#' + ${ord.id}">#1</td>
+                                <td th:text="${ord.clientName}">Client</td>
+                                <td th:text="${ord.type}">IN_REST</td>
+                                <td>
+                                    <span class="badge" th:classappend="${ord.status == 'COMPLETED'} ? 'bg-success' : (${ord.status == 'CANCELLED'} ? 'bg-secondary' : 'bg-primary')" th:text="${ord.status}">PENDING</span>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(ord.totalAmount, 0, 'POINT', 0, 'COMMA')} + ' F'">1000 F</td>
+                                <td th:text="${ord.createdAt}">Date</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals declarations -->
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0" style="border-radius: var(--border-radius);">
+                <div class="modal-header border-0 bg-light p-4">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-egg-fried me-2"></i>Nouveau Produit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addProductForm">
+                        <div class="mb-3">
+                            <label for="prodName" class="form-label small fw-bold">Nom</label>
+                            <input type="text" class="form-control bg-light" id="prodName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prodCategory" class="form-label small fw-bold">Catégorie</label>
+                            <select id="prodCategory" class="form-select bg-light" required>
+                                <option value="" disabled selected>Choisir la Catégorie</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col">
+                                <label for="prodPrice" class="form-label small fw-bold">Prix (FCFA)</label>
+                                <input type="number" class="form-control bg-light" id="prodPrice" required>
+                            </div>
+                            <div class="col">
+                                <label for="prodStock" class="form-label small fw-bold">Stock Initial</label>
+                                <input type="number" class="form-control bg-light" id="prodStock" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold d-block">Type Spécifique</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="prodBeverage">
+                                <label class="form-check-label small" for="prodBeverage">Boisson</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="prodDessert">
+                                <label class="form-check-label small" for="prodDessert">Dessert</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prodImage" class="form-label small fw-bold">Photo du produit</label>
+                            <input type="file" class="form-control bg-light" id="prodImage" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label for="prodDesc" class="form-label small fw-bold">Description courte</label>
+                            <input type="text" class="form-control bg-light" id="prodDesc" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-3">Enregistrer le produit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0" style="border-radius: var(--border-radius);">
+                <div class="modal-header border-0 bg-light p-4">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-tags me-2"></i>Nouvelle Catégorie</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addCategoryForm">
+                        <div class="mb-3">
+                            <label for="catName" class="form-label small fw-bold">Nom de la Catégorie</label>
+                            <input type="text" class="form-control bg-light" id="catName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="catOrder" class="form-label small fw-bold">Ordre d'affichage</label>
+                            <input type="number" class="form-control bg-light" id="catOrder" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="catDesc" class="form-label small fw-bold">Description</label>
+                            <input type="text" class="form-control bg-light" id="catDesc">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-3">Enregistrer la catégorie</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div class="modal fade" id="addEmployeeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0" style="border-radius: var(--border-radius);">
+                <div class="modal-header border-0 bg-light p-4">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-person-plus me-2"></i>Nouvel Employé</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addEmployeeForm">
+                        <div class="row g-2 mb-3">
+                            <div class="col">
+                                <label for="empFirstName" class="form-label small fw-bold">Prénom</label>
+                                <input type="text" class="form-control bg-light" id="empFirstName" required>
+                            </div>
+                            <div class="col">
+                                <label for="empLastName" class="form-label small fw-bold">Nom</label>
+                                <input type="text" class="form-control bg-light" id="empLastName" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="empUsername" class="form-label small fw-bold">Identifiant unique</label>
+                            <input type="text" class="form-control bg-light" id="empUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="empEmail" class="form-label small fw-bold">Email</label>
+                            <input type="email" class="form-control bg-light" id="empEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="empPhone" class="form-label small fw-bold">Téléphone</label>
+                            <input type="text" class="form-control bg-light" id="empPhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="empRole" class="form-label small fw-bold">Rôle / Poste</label>
+                            <select id="empRole" class="form-select bg-light" required>
+                                <option value="SERVER">Serveur (Salle)</option>
+                                <option value="CHEF">Cuisinier (Cuisine)</option>
+                                <option value="CASHIER">Caissier (Caisse)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="empPassword" class="form-label small fw-bold">Mot de passe initial</label>
+                            <input type="password" class="form-control bg-light" id="empPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-3">Enrôler l'employé</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const restaurantId = [[${restaurant.id}]];
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.main-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+            
+            document.getElementById(sectionId + 'Section').classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function logout() {
+            document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
+            localStorage.clear();
+        }
+
+        // Add Category
+        document.getElementById('addCategoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            
+            const payload = {
+                name: document.getElementById('catName').value,
+                displayOrder: parseInt(document.getElementById('catOrder').value),
+                description: document.getElementById('catDesc').value,
+                active: true
+            };
+
+            fetch(`/api/restaurant/${restaurantId}/categories`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(payload)
+            }).then(() => location.reload());
+        });
+
+        // Add Product
+        document.getElementById('addProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const fileInput = document.getElementById('prodImage');
+            
+            const submitForm = (imageUrl) => {
+                const payload = {
+                    name: document.getElementById('prodName').value,
+                    categoryId: parseInt(document.getElementById('prodCategory').value),
+                    price: parseFloat(document.getElementById('prodPrice').value),
+                    stockQuantity: parseInt(document.getElementById('prodStock').value),
+                    beverage: document.getElementById('prodBeverage').checked,
+                    dessert: document.getElementById('prodDessert').checked,
+                    description: document.getElementById('prodDesc').value,
+                    imageUrl: imageUrl || null,
+                    available: true
+                };
+
+                fetch(`/api/restaurant/${restaurantId}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(payload)
+                }).then(() => location.reload());
+            };
+
+            if (fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                fetch('/api/public/upload-image', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    submitForm(data.imageUrl);
+                })
+                .catch(err => {
+                    console.error("Error uploading image:", err);
+                    submitForm(null);
+                });
+            } else {
+                submitForm(null);
+            }
+        });
+
+        // Add Employee
+        document.getElementById('addEmployeeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            
+            const payload = {
+                username: document.getElementById('empUsername').value,
+                email: document.getElementById('empEmail').value,
+                password: document.getElementById('empPassword').value,
+                firstName: document.getElementById('empFirstName').value,
+                lastName: document.getElementById('empLastName').value,
+                phone: document.getElementById('empPhone').value,
+                role: document.getElementById('empRole').value,
+                restaurantId: restaurantId
+            };
+
+            fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(payload)
+            }).then(() => location.reload());
+        });
+
+        function deleteProduct(id) {
+            if (confirm("Supprimer ce produit définitivement ?")) {
+                const token = localStorage.getItem('token');
+                fetch(`/api/restaurant/product/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }).then(() => location.reload());
+            }
+        }
+
+        function deleteCategory(id) {
+            if (confirm("Supprimer cette catégorie ?")) {
+                const token = localStorage.getItem('token');
+                fetch(`/api/restaurant/category/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }).then(() => location.reload());
+            }
+        }
+
+        // Render Chart.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const weeklyRev = [[${weeklyRevenue}]]; // list of 4 elements from report service
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Semaine 1', 'Semaine 2', 'Semaine 3', 'Semaine 4'],
+                    datasets: [{
+                        label: 'Chiffre d\'Affaires (FCFA)',
+                        data: weeklyRev || [0, 0, 0, 0],
+                        borderColor: '#6A0DAD',
+                        backgroundColor: 'rgba(106, 13, 173, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return value.toLocaleString() + ' F'; }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

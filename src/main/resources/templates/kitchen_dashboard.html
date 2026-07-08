@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuisine - Delis Divin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- SockJS and STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #121214;
+            color: #e2e8f0;
+        }
+        .kanban-column {
+            background-color: #1e1e24;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 70vh;
+        }
+        .order-card {
+            background-color: #2a2a32;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #e2e8f0;
+        }
+        .text-dark-muted {
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <nav class="navbar navbar-dark bg-dark shadow mb-4">
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 fw-bold text-primary"><i class="bi bi-egg-fried me-2"></i>Espace Cuisine - <span th:text="${restaurant.name}"></span></span>
+            <div class="d-flex gap-3 align-items-center">
+                <span class="badge bg-success" id="connectionBadge"><i class="bi bi-wifi me-1"></i>Connecté (Temps Réel)</span>
+                <a href="/login" class="btn btn-outline-danger btn-sm rounded-pill" onclick="logout()">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid px-4">
+        <div class="row g-4">
+            
+            <!-- Column 1: PENDING -->
+            <div class="col-md-4">
+                <div class="kanban-column">
+                    <h5 class="fw-bold mb-4 text-warning"><i class="bi bi-hourglass me-2"></i>Nouvelles Commandes</h5>
+                    <div id="pendingColumn">
+                        <!-- Th:each fallback for server-rendered page -->
+                        <div class="order-card" th:each="ord : ${orders}" th:if="${ord.status.name() == 'PENDING'}" th:id="'order-' + ${ord.id}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-white" th:text="'Commande #' + ${ord.id}"></h6>
+                                <span class="badge bg-warning" th:text="${ord.type}">IN_REST</span>
+                            </div>
+                            <p class="small text-dark-muted mb-2">
+                                <span th:if="${ord.tableNumber != null}" th:text="'Table N° ' + ${ord.tableNumber}"></span>
+                                <span th:if="${ord.tableNumber == null}">À Emporter/Livraison</span>
+                            </p>
+                            
+                            <ul class="list-unstyled border-top border-secondary pt-2 mb-3">
+                                <li th:each="item : ${ord.orderItems}" class="small text-white">
+                                    <span class="fw-bold" th:text="${item.quantity} + 'x '">1x </span>
+                                    <span th:text="${item.productName}">Dish</span>
+                                    <p th:if="${item.specialNotes != null && !#strings.isEmpty(item.specialNotes)}" 
+                                       class="small text-warning mb-0" th:text="'Note: ' + ${item.specialNotes}"></p>
+                                </li>
+                            </ul>
+                            
+                            <button class="btn btn-primary btn-sm w-100 rounded-pill" th:onclick="'updateStatus(' + ${ord.id} + ', \'PREPARING\')'">Préparer <i class="bi bi-play-fill ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: PREPARING -->
+            <div class="col-md-4">
+                <div class="kanban-column">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-fire me-2"></i>En Préparation</h5>
+                    <div id="preparingColumn">
+                        <div class="order-card" th:style="'border-left-color: #8E2DE2;'" th:each="ord : ${orders}" th:if="${ord.status.name() == 'PREPARING'}" th:id="'order-' + ${ord.id}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-white" th:text="'Commande #' + ${ord.id}"></h6>
+                                <span class="badge bg-primary" th:text="${ord.type}">IN_REST</span>
+                            </div>
+                            <p class="small text-dark-muted mb-2">
+                                <span th:if="${ord.tableNumber != null}" th:text="'Table N° ' + ${ord.tableNumber}"></span>
+                                <span th:if="${ord.tableNumber == null}">À Emporter/Livraison</span>
+                            </p>
+                            
+                            <ul class="list-unstyled border-top border-secondary pt-2 mb-3">
+                                <li th:each="item : ${ord.orderItems}" class="small text-white">
+                                    <span class="fw-bold" th:text="${item.quantity} + 'x '">1x </span>
+                                    <span th:text="${item.productName}">Dish</span>
+                                    <p th:if="${item.specialNotes != null && !#strings.isEmpty(item.specialNotes)}" 
+                                       class="small text-warning mb-0" th:text="'Note: ' + ${item.specialNotes}"></p>
+                                </li>
+                            </ul>
+                            
+                            <button class="btn btn-success btn-sm w-100 rounded-pill" th:onclick="'updateStatus(' + ${ord.id} + ', \'READY\')'">Prêt <i class="bi bi-check-lg ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: READY -->
+            <div class="col-md-4">
+                <div class="kanban-column">
+                    <h5 class="fw-bold mb-4 text-success"><i class="bi bi-check-circle me-2"></i>Prêtes / À Servir</h5>
+                    <div id="readyColumn">
+                        <div class="order-card" th:style="'border-left-color: #28a745;'" th:each="ord : ${orders}" th:if="${ord.status.name() == 'READY'}" th:id="'order-' + ${ord.id}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-white" th:text="'Commande #' + ${ord.id}"></h6>
+                                <span class="badge bg-success" th:text="${ord.type}">IN_REST</span>
+                            </div>
+                            <p class="small text-dark-muted mb-2">
+                                <span th:if="${ord.tableNumber != null}" th:text="'Table N° ' + ${ord.tableNumber}"></span>
+                                <span th:if="${ord.tableNumber == null}">À Emporter/Livraison</span>
+                            </p>
+                            
+                            <ul class="list-unstyled border-top border-secondary pt-2 mb-3">
+                                <li th:each="item : ${ord.orderItems}" class="small text-white">
+                                    <span class="fw-bold" th:text="${item.quantity} + 'x '">1x </span>
+                                    <span th:text="${item.productName}">Dish</span>
+                                    <p th:if="${item.specialNotes != null && !#strings.isEmpty(item.specialNotes)}" 
+                                       class="small text-warning mb-0" th:text="'Note: ' + ${item.specialNotes}"></p>
+                                </li>
+                            </ul>
+                            
+                            <button class="btn btn-outline-light btn-sm w-100 rounded-pill" th:onclick="'updateStatus(' + ${ord.id} + ', \'SERVED\')'">Servie <i class="bi bi-egg me-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- WebSockets & Kanban Scripts -->
+    <script th:inline="javascript">
+        const restaurantId = [[${restaurant.id}]];
+
+        function logout() {
+            document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
+            localStorage.clear();
+        }
+
+        function updateStatus(orderId, newStatus) {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/order/${orderId}/status?status=${newStatus}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            }).then(response => {
+                if (response.ok) {
+                    // Update UI immediately (it will also receive WS updates)
+                    const el = document.getElementById('order-' + orderId);
+                    if (el) el.remove();
+                }
+            });
+        }
+
+        // WebSocket connection
+        function connect() {
+            const socket = new SockJS('/ws');
+            const stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function (frame) {
+                document.getElementById('connectionBadge').className = "badge bg-success";
+                document.getElementById('connectionBadge').innerHTML = '<i class="bi bi-wifi me-1"></i>Connecté (Temps Réel)';
+
+                // Subscribe to kitchen orders queue
+                stompClient.subscribe(`/topic/restaurant/${restaurantId}/kitchen`, function (messageOutput) {
+                    const order = JSON.parse(messageOutput.body);
+                    handleIncomingOrder(order);
+                });
+            }, function (error) {
+                document.getElementById('connectionBadge').className = "badge bg-danger";
+                document.getElementById('connectionBadge').innerHTML = '<i class="bi bi-wifi-off me-1"></i>Déconnecté';
+                setTimeout(connect, 5000); // retry
+            });
+        }
+
+        function handleIncomingOrder(order) {
+            // Remove existing card if present
+            const oldCard = document.getElementById('order-' + order.id);
+            if (oldCard) oldCard.remove();
+
+            // Only add if active status (PENDING, PREPARING, READY)
+            if (order.status !== 'PENDING' && order.status !== 'PREPARING' && order.status !== 'READY') {
+                return;
+            }
+
+            let containerId = "";
+            let btnHtml = "";
+            let borderStyle = "";
+            let badgeClass = "";
+
+            if (order.status === 'PENDING') {
+                containerId = "pendingColumn";
+                badgeClass = "bg-warning";
+                btnHtml = `<button class="btn btn-primary btn-sm w-100 rounded-pill" onclick="updateStatus(${order.id}, 'PREPARING')">Préparer <i class="bi bi-play-fill ms-1"></i></button>`;
+            } else if (order.status === 'PREPARING') {
+                containerId = "preparingColumn";
+                badgeClass = "bg-primary";
+                borderStyle = 'style="border-left-color: #8E2DE2;"';
+                btnHtml = `<button class="btn btn-success btn-sm w-100 rounded-pill" onclick="updateStatus(${order.id}, 'READY')">Prêt <i class="bi bi-check-lg ms-1"></i></button>`;
+            } else if (order.status === 'READY') {
+                containerId = "readyColumn";
+                badgeClass = "bg-success";
+                borderStyle = 'style="border-left-color: #28a745;"';
+                btnHtml = `<button class="btn btn-outline-light btn-sm w-100 rounded-pill" onclick="updateStatus(${order.id}, 'SERVED')">Servie <i class="bi bi-egg me-1"></i></button>`;
+            }
+
+            const itemsHtml = order.orderItems.map(item => `
+                <li class="small text-white">
+                    <span class="fw-bold">${item.quantity}x </span>
+                    <span>${item.productName}</span>
+                    ${item.specialNotes ? `<p class="small text-warning mb-0">Note: ${item.specialNotes}</p>` : ''}
+                </li>
+            `).join('');
+
+            const cardHtml = `
+                <div class="order-card animate-fade-in" id="order-${order.id}" ${borderStyle}>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold mb-0 text-white">Commande #${order.id}</h6>
+                        <span class="badge ${badgeClass}">${order.type}</span>
+                    </div>
+                    <p class="small text-dark-muted mb-2">
+                        ${order.tableNumber ? `Table N° ${order.tableNumber}` : 'À Emporter/Livraison'}
+                    </p>
+                    <ul class="list-unstyled border-top border-secondary pt-2 mb-3">
+                        ${itemsHtml}
+                    </ul>
+                    ${btnHtml}
+                </div>
+            `;
+
+            document.getElementById(containerId).insertAdjacentHTML('beforeend', cardHtml);
+        }
+
+        connect();
+    </script>
+</body>
+</html>

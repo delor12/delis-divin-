@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Serveur - Delis Divin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 24px;
+        }
+        .table-card {
+            aspect-ratio: 1;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .table-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .table-card.free {
+            background-color: #e6fcf5;
+            color: #0ca678;
+            border: 2px solid #c3fae8;
+        }
+        .table-card.reserved {
+            background-color: #fff9db;
+            color: #f59f00;
+            border: 2px solid #fff3bf;
+        }
+        .table-card.occupied {
+            background-color: #fff5f5;
+            color: #fa5252;
+            border: 2px solid #ffe3e3;
+        }
+        .product-item {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .product-item:hover {
+            background-color: var(--primary-light) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
+                <i class="bi bi-egg-fried fs-3"></i>
+                <span th:text="${restaurant.name} + ' - Serveur'">Delis Divin</span>
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/login" class="btn btn-outline-danger rounded-pill btn-sm px-3" onclick="logout()">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <div class="container my-5">
+        <div class="row g-4">
+            
+            <!-- Left Column: Tables Grid -->
+            <div class="col-lg-8">
+                <div class="card premium-card p-4">
+                    <h5 class="fw-bold text-primary mb-4"><i class="bi bi-grid-3x3-gap me-2"></i>Plan de la Salle</h5>
+                    <div class="table-grid" id="tablesContainer">
+                        <div th:each="tbl : ${tables}" 
+                             th:id="'table-card-' + ${tbl.id}"
+                             th:class="'table-card ' + ${#strings.toLowerCase(tbl.status)}"
+                             th:onclick="'selectTable(' + ${tbl.id} + ', ' + ${tbl.number} + ', \'' + ${tbl.status} + '\')'">
+                            <i class="bi bi-table fs-2 mb-2"></i>
+                            <span th:text="'Table ' + ${tbl.number}">Table 1</span>
+                            <span class="small opacity-75 mt-1" th:text="${tbl.capacity} + ' Couverts'">4 places</span>
+                            <span class="badge mt-2 bg-white text-dark border th-badge" 
+                                  th:text="${tbl.status == 'FREE' ? 'Libre' : (tbl.status == 'RESERVED' ? 'Réservée' : 'Occupée')}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Actions Pane -->
+            <div class="col-lg-4">
+                <!-- Select Table prompt -->
+                <div id="selectPrompt" class="card premium-card p-4 text-center py-5">
+                    <i class="bi bi-hand-index-thumb display-3 text-muted"></i>
+                    <h5 class="fw-bold mt-4">Sélectionner une table</h5>
+                    <p class="text-muted small">Cliquez sur une table pour changer son statut ou prendre une commande.</p>
+                </div>
+
+                <!-- Active Control Pane -->
+                <div id="controlPane" class="card premium-card p-4 d-none">
+                    <h5 class="fw-bold text-primary mb-3 border-bottom pb-2" id="paneTitle">Table N°</h5>
+                    
+                    <!-- Table status actions -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Statut de la table</label>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-success btn-sm rounded-pill flex-grow-1" onclick="changeStatus('FREE')">Libérer</button>
+                            <button class="btn btn-outline-warning btn-sm rounded-pill flex-grow-1" onclick="changeStatus('RESERVED')">Réserver</button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill flex-grow-1" onclick="changeStatus('OCCUPIED')">Occuper</button>
+                        </div>
+                    </div>
+
+                    <!-- Order taking area -->
+                    <div id="orderBlock">
+                        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="bi bi-plus-circle me-1"></i>Prendre une Commande</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Sélectionner les articles</label>
+                            <div class="list-group bg-light" style="max-height: 200px; overflow-y: auto;">
+                                <div th:each="prod : ${products}" 
+                                     class="list-group-item list-group-item-action product-item d-flex justify-content-between align-items-center bg-transparent border-0 py-2"
+                                     th:onclick="'addItemToOrder(' + ${prod.id} + ', \'' + ${#strings.escapeJavaScript(prod.name)} + '\', ' + ${prod.price} + ')'">
+                                    <span class="small" th:text="${prod.name}">Dish</span>
+                                    <span class="badge bg-primary rounded-pill" th:text="${prod.price} + ' F'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current items selected -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Articles de la table</label>
+                            <div id="serverOrderItemsList" class="d-flex flex-column gap-2" style="max-height: 150px; overflow-y: auto;">
+                                <span class="text-muted small">Aucun article sélectionné</span>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-2 mb-3">
+                            <div class="d-flex justify-content-between fw-bold text-dark">
+                                <span>Total:</span>
+                                <span id="serverOrderTotal">0 FCFA</span>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold" onclick="submitServerOrder()">Envoyer en Cuisine</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const restaurantId = [[${restaurant.id}]];
+        let selectedTableId = null;
+        let selectedTableNumber = null;
+        let serverOrderItems = [];
+
+        function logout() {
+            document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
+            localStorage.clear();
+        }
+
+        function selectTable(id, number, status) {
+            selectedTableId = id;
+            selectedTableNumber = number;
+            serverOrderItems = []; // Reset current taken order
+
+            document.getElementById('selectPrompt').classList.add('d-none');
+            const pane = document.getElementById('controlPane');
+            pane.classList.remove('d-none');
+
+            document.getElementById('paneTitle').innerHTML = `<i class="bi bi-table me-2"></i>Table N° ${number}`;
+            updateServerOrderUI();
+        }
+
+        function changeStatus(newStatus) {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/table/${selectedTableId}/status?status=${newStatus}`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => res.json())
+            .then(table => {
+                // Update table card color on UI
+                const card = document.getElementById('table-card-' + selectedTableId);
+                card.className = 'table-card ' + newStatus.toLowerCase();
+                
+                const badge = card.querySelector('.th-badge');
+                badge.textContent = newStatus === 'FREE' ? 'Libre' : (newStatus === 'RESERVED' ? 'Réservée' : 'Occupée');
+                
+                alert("Statut de la table mis à jour.");
+            });
+        }
+
+        function addItemToOrder(productId, name, price) {
+            const existing = serverOrderItems.find(item => item.productId === productId);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                serverOrderItems.push({ productId, name, price, quantity: 1 });
+            }
+            updateServerOrderUI();
+        }
+
+        function removeServerItem(productId) {
+            serverOrderItems = serverOrderItems.filter(item => item.productId !== productId);
+            updateServerOrderUI();
+        }
+
+        function updateServerOrderUI() {
+            const listDiv = document.getElementById('serverOrderItemsList');
+            const totalSpan = document.getElementById('serverOrderTotal');
+
+            if (serverOrderItems.length === 0) {
+                listDiv.innerHTML = '<span class="text-muted small">Aucun article sélectionné</span>';
+                totalSpan.textContent = '0 FCFA';
+                return;
+            }
+
+            listDiv.innerHTML = '';
+            let total = 0;
+
+            serverOrderItems.forEach(item => {
+                const sub = item.price * item.quantity;
+                total += sub;
+
+                const row = document.createElement('div');
+                row.className = 'd-flex align-items-center justify-content-between border-bottom pb-1';
+                row.innerHTML = `
+                    <span class="small fw-bold text-dark">${item.quantity}x ${item.name}</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">${sub.toLocaleString()} F</span>
+                        <button class="btn btn-link btn-xs text-danger p-0" onclick="removeServerItem(${item.productId})"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                `;
+                listDiv.appendChild(row);
+            });
+
+            totalSpan.textContent = total.toLocaleString() + ' FCFA';
+        }
+
+        function submitServerOrder() {
+            if (serverOrderItems.length === 0) {
+                alert("Veuillez sélectionner au moins un article.");
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            let waiterId = null;
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                waiterId = user.id;
+            }
+
+            const payload = {
+                clientName: "Table N° " + selectedTableNumber,
+                clientPhone: "Salle",
+                type: "IN_REST",
+                tableId: selectedTableId,
+                waiterId: waiterId,
+                orderItems: serverOrderItems.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+
+            fetch(`/api/restaurant/${restaurantId}/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    const err = await response.json();
+                    throw new Error(err.message || "Erreur de validation");
+                }
+            })
+            .then(order => {
+                alert(`Commande #${order.id} transmise avec succès à la cuisine.`);
+                serverOrderItems = [];
+                updateServerOrderUI();
+                
+                // Automatically change table status to occupied on UI
+                changeStatus('OCCUPIED');
+            })
+            .catch(err => {
+                alert("Erreur: " + err.message);
+            });
+        }
+    </script>
+</body>
+</html>
