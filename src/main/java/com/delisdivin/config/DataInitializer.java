@@ -144,6 +144,7 @@ public class DataInitializer implements CommandLineRunner {
         superAdmin.setActive(true);
         userRepository.save(superAdmin);
 
+        feature-seed-divine-mere-accounts
         // Gérant (Admin) - Divine Mère
         AppUser gerantDM = new AppUser();
         gerantDM.setUsername("gerant_divinemere");
@@ -170,6 +171,7 @@ public class DataInitializer implements CommandLineRunner {
         serveurDM.setActive(true);
         userRepository.save(serveurDM);
 
+        main
         // 5. Seed Product Categories
         ProductCategory ent = new ProductCategory();
         ent.setName("Entrées");
