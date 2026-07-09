@@ -15,6 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+import com.delisdivin.entity.ChatMessage;
+import com.delisdivin.repository.ChatMessageRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @RestController
 @RequestMapping("/api")
@@ -28,6 +32,8 @@ public class ApiController {
     private final OrderService orderService;
     private final PaymentService paymentService;
     private final ReportService reportService;
+    private final ChatMessageRepository chatMessageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // --- Public Platform endpoints ---
 
@@ -234,6 +240,28 @@ public class ApiController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    // --- Live Chat Endpoints ---
+
+    @PostMapping("/public/chat/message")
+    public ResponseEntity<ChatMessage> sendChatMessage(@RequestBody ChatMessage message) {
+        message.setTimestamp(LocalDateTime.now());
+        ChatMessage saved = chatMessageRepository.save(message);
+        messagingTemplate.convertAndSend("/topic/restaurant/" + message.getRestaurantId() + "/chat", saved);
+        return ResponseEntity.ok(saved);
+    }
+
+    @GetMapping("/public/chat/history")
+    public ResponseEntity<List<ChatMessage>> getChatHistory(
+            @RequestParam Long restaurantId,
+            @RequestParam String clientUniqueId) {
+        return ResponseEntity.ok(chatMessageRepository.findByRestaurantIdAndClientUniqueIdOrderByTimestampAsc(restaurantId, clientUniqueId));
+    }
+
+    @GetMapping("/chat/threads")
+    public ResponseEntity<List<ChatMessage>> getChatThreads(@RequestParam Long restaurantId) {
+        return ResponseEntity.ok(chatMessageRepository.findLatestMessagesGroupedByClient(restaurantId));
     }
 }
 

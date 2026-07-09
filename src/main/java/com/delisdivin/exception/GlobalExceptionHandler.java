@@ -86,6 +86,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public Object handleAuthenticationException(org.springframework.security.core.AuthenticationException ex, HttpServletRequest request) {
+        log.error("Authentication failed: {}", ex.getMessage());
+        if (isApiRequest(request)) {
+            ErrorResponse error = new ErrorResponse(
+                    LocalDateTime.now(),
+                    HttpStatus.UNAUTHORIZED.value(),
+                    HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                    "Identifiants ou mot de passe incorrects.",
+                    request.getRequestURI()
+            );
+            return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+        }
+        ModelAndView modelAndView = new ModelAndView("error");
+        modelAndView.addObject("status", 401);
+        modelAndView.addObject("error", "Unauthorized");
+        modelAndView.addObject("message", "Identifiants ou mot de passe incorrects.");
+        return modelAndView;
+    }
+
     @ExceptionHandler(Exception.class)
     public Object handleGlobalException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception occurred: ", ex);
