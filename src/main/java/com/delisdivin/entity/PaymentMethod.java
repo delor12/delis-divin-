@@ -4,5 +4,7 @@ public enum PaymentMethod {
     CASH,
     ORANGE_MONEY,
     MTN_MONEY,
+    WAVE,
+    FREE_MONEY,
     CARD
 }
