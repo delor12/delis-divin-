@@ -153,7 +153,7 @@ public class DataInitializer implements CommandLineRunner {
         gerantDM.setLastName("Ndiaye");
         gerantDM.setPhone("+221 77 987 65 43");
         gerantDM.setRole(Role.RESTAURANT_ADMIN);
-        gerantDM.setRestaurant(bistrot);
+        gerantDM.setRestaurant(epieurien);
         gerantDM.setActive(true);
         userRepository.save(gerantDM);
 
@@ -166,7 +166,7 @@ public class DataInitializer implements CommandLineRunner {
         serveurDM.setLastName("Sow");
         serveurDM.setPhone("+221 77 654 32 10");
         serveurDM.setRole(Role.SERVER);
-        serveurDM.setRestaurant(bistrot);
+        serveurDM.setRestaurant(epieurien);
         serveurDM.setActive(true);
         userRepository.save(serveurDM);
 
