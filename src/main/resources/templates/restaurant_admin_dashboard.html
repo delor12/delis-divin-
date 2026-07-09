@@ -15,7 +15,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SockJS and STOMP -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         body {
@@ -38,11 +38,11 @@
             <span th:text="${restaurant.name}">Gérant</span>
         </a>
         <ul class="sidebar-menu">
-            <li><a href="#" class="sidebar-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
-            <li><a href="#" class="sidebar-link" onclick="showSection('products')"><i class="bi bi-egg-fried"></i><span>Menu & Stocks</span></a></li>
-            <li><a href="#" class="sidebar-link" onclick="showSection('categories')"><i class="bi bi-tags"></i><span>Catégories</span></a></li>
-            <li><a href="#" class="sidebar-link" onclick="showSection('employees')"><i class="bi bi-people"></i><span>Employés</span></a></li>
-            <li><a href="#" class="sidebar-link" onclick="showSection('orders')"><i class="bi bi-receipt"></i><span>Commandes</span></a></li>
+            <li><a href="#" class="sidebar-link active" onclick="showSection('dashboard', this)"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('products', this)"><i class="bi bi-egg-fried"></i><span>Menu & Stocks</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('categories', this)"><i class="bi bi-tags"></i><span>Catégories</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('employees', this)"><i class="bi bi-people"></i><span>Employés</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('orders', this)"><i class="bi bi-receipt"></i><span>Commandes</span></a></li>
             <li>
                 <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#clientChatModal" onclick="openChatModal()">
                     <i class="bi bi-chat-dots"></i>
@@ -179,7 +179,7 @@
                                     <span th:if="${!prod.beverage && !prod.dessert}" class="text-muted">-</span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-outline-danger btn-sm rounded-circle" th:onclick="'deleteProduct(' + ${prod.id} + ')'"><i class="bi bi-trash"></i></button>
+                                     <button class="btn btn-outline-danger btn-sm rounded-circle" th:data-id="${prod.id}" onclick="deleteProduct(this.getAttribute('data-id'))"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -212,7 +212,7 @@
                                 <td class="small text-muted" th:text="${cat.description}">Desc</td>
                                 <td th:text="${cat.displayOrder}">0</td>
                                 <td>
-                                    <button class="btn btn-outline-danger btn-sm rounded-circle" th:onclick="'deleteCategory(' + ${cat.id} + ')'"><i class="bi bi-trash"></i></button>
+                                     <button class="btn btn-outline-danger btn-sm rounded-circle" th:data-id="${cat.id}" onclick="deleteCategory(this.getAttribute('data-id'))"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -440,12 +440,14 @@
     <script th:inline="javascript">
         const restaurantId = [[${restaurant.id}]];
 
-        function showSection(sectionId) {
+        function showSection(sectionId, element) {
             document.querySelectorAll('.main-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
             
             document.getElementById(sectionId + 'Section').classList.add('active');
-            event.currentTarget.classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            }
         }
 
         function logout() {

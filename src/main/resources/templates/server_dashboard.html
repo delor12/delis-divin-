@@ -12,8 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <!-- SockJS and STOMP -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         body {
@@ -95,7 +94,10 @@
                         <div th:each="tbl : ${tables}" 
                              th:id="'table-card-' + ${tbl.id}"
                              th:class="'table-card ' + ${#strings.toLowerCase(tbl.status)}"
-                             th:onclick="'selectTable(' + ${tbl.id} + ', ' + ${tbl.number} + ', \'' + ${tbl.status} + '\')'">
+                             th:data-id="${tbl.id}"
+                             th:data-number="${tbl.number}"
+                             th:data-status="${tbl.status}"
+                             onclick="selectTable(this.getAttribute('data-id'), this.getAttribute('data-number'), this.getAttribute('data-status'))">
                             <i class="bi bi-table fs-2 mb-2"></i>
                             <span th:text="'Table ' + ${tbl.number}">Table 1</span>
                             <span class="small opacity-75 mt-1" th:text="${tbl.capacity} + ' Couverts'">4 places</span>
@@ -138,7 +140,10 @@
                             <div class="list-group bg-light" style="max-height: 200px; overflow-y: auto;">
                                 <div th:each="prod : ${products}" 
                                      class="list-group-item list-group-item-action product-item d-flex justify-content-between align-items-center bg-transparent border-0 py-2"
-                                     th:onclick="'addItemToOrder(' + ${prod.id} + ', \'' + ${#strings.escapeJavaScript(prod.name)} + '\', ' + ${prod.price} + ')'">
+                                     th:data-id="${prod.id}"
+                                     th:data-name="${prod.name}"
+                                     th:data-price="${prod.price}"
+                                     onclick="addItemToOrder(this.getAttribute('data-id'), this.getAttribute('data-name'), parseFloat(this.getAttribute('data-price')))">
                                     <span class="small" th:text="${prod.name}">Dish</span>
                                     <span class="badge bg-primary rounded-pill" th:text="${prod.price} + ' F'"></span>
                                 </div>

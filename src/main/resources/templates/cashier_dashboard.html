@@ -66,7 +66,10 @@
                                     <td class="fw-bold text-primary" th:text="${#numbers.formatDecimal(ord.totalAmount, 0, 'POINT', 0, 'COMMA')} + ' F'">1000 F</td>
                                     <td>
                                         <button class="btn btn-primary btn-sm rounded-pill px-3" 
-                                                th:onclick="'selectOrder(' + ${ord.id} + ', ' + ${ord.totalAmount} + ', \'' + ${ord.clientName} + '\')'">Encaisser</button>
+                                                th:data-id="${ord.id}"
+                                                th:data-amount="${ord.totalAmount}"
+                                                th:data-client="${ord.clientName}"
+                                                onclick="selectOrder(this.getAttribute('data-id'), parseFloat(this.getAttribute('data-amount')), this.getAttribute('data-client'))">Encaisser</button>
                                     </td>
                                 </tr>
                             </tbody>
