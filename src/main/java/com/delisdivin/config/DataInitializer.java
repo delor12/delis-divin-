@@ -144,6 +144,32 @@ public class DataInitializer implements CommandLineRunner {
         superAdmin.setActive(true);
         userRepository.save(superAdmin);
 
+        // Gérant (Admin) - Divine Mère
+        AppUser gerantDM = new AppUser();
+        gerantDM.setUsername("gerant_divinemere");
+        gerantDM.setEmail("gerant@divinemere.com");
+        gerantDM.setPassword(defaultPassword);
+        gerantDM.setFirstName("Fatou");
+        gerantDM.setLastName("Ndiaye");
+        gerantDM.setPhone("+221 77 987 65 43");
+        gerantDM.setRole(Role.RESTAURANT_ADMIN);
+        gerantDM.setRestaurant(bistrot);
+        gerantDM.setActive(true);
+        userRepository.save(gerantDM);
+
+        // Serveur (Waiter) - Divine Mère
+        AppUser serveurDM = new AppUser();
+        serveurDM.setUsername("serveur_divinemere");
+        serveurDM.setEmail("serveur@divinemere.com");
+        serveurDM.setPassword(defaultPassword);
+        serveurDM.setFirstName("Moussa");
+        serveurDM.setLastName("Sow");
+        serveurDM.setPhone("+221 77 654 32 10");
+        serveurDM.setRole(Role.SERVER);
+        serveurDM.setRestaurant(bistrot);
+        serveurDM.setActive(true);
+        userRepository.save(serveurDM);
+
         // 5. Seed Product Categories
         ProductCategory ent = new ProductCategory();
         ent.setName("Entrées");
