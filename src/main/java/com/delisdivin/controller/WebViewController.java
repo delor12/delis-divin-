@@ -84,6 +84,12 @@ public class WebViewController {
         model.addAttribute("cities", cityService.getAllCities());
         model.addAttribute("restaurants", restaurantService.getAllRestaurants());
         model.addAttribute("backups", backupService.getBackups());
+        
+        List<UserDTO> deliverers = userService.getAllUsers().stream()
+                .filter(u -> u.getRole() == com.delisdivin.entity.Role.DELIVERY)
+                .toList();
+        model.addAttribute("deliverers", deliverers);
+        
         return "super_admin_dashboard";
     }
 

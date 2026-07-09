@@ -30,6 +30,7 @@
             <li><a href="#" class="sidebar-link active"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
             <li><a href="#cities" class="sidebar-link"><i class="bi bi-globe"></i><span>Villes</span></a></li>
             <li><a href="#restaurants" class="sidebar-link"><i class="bi bi-shop"></i><span>Restaurants</span></a></li>
+            <li><a href="#deliverers" class="sidebar-link"><i class="bi bi-bicycle"></i><span>Livreurs</span></a></li>
             <li><a href="#backups" class="sidebar-link"><i class="bi bi-database-check"></i><span>Sauvegardes</span></a></li>
             <li><hr class="my-2 text-muted"></li>
             <li><a href="/login" class="sidebar-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span>Déconnexion</span></a></li>
@@ -157,6 +158,51 @@
                 </div>
             </div>
         </div>
+
+        <!-- Deliverers Section -->
+        <section class="dashboard-section mt-5" id="deliverers">
+            <div class="card premium-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold text-primary mb-0"><i class="bi bi-bicycle me-2"></i>Livreurs de la plateforme</h5>
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addDelivererModal">
+                        <i class="bi bi-plus-circle me-1"></i>Enregistrer un Livreur
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-dark">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Nom Complet</th>
+                                <th>Identifiant</th>
+                                <th>Contact (Email / Tél)</th>
+                                <th>Restaurant Rattaché</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="del : ${deliverers}">
+                                <td class="fw-bold" th:text="${del.firstName} + ' ' + ${del.lastName}">Jean Livreur</td>
+                                <td class="text-muted" th:text="${del.username}">jean_l</td>
+                                <td class="small">
+                                    <div th:text="${del.email}">jean@mail.com</div>
+                                    <div class="text-muted" th:text="${del.phone}">+221 77...</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary" th:if="${del.restaurantId == null}">Global / Plateforme</span>
+                                    <span class="badge bg-info text-dark" th:if="${del.restaurantId != null}">
+                                        <th:block th:each="r : ${restaurants}" th:if="${r.id == del.restaurantId}" th:text="${r.name}"></th:block>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success" th:if="${del.active}">Actif</span>
+                                    <span class="badge bg-danger" th:if="${!del.active}">Inactif</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
         <!-- Backups Section -->
         <section class="card premium-card p-4 mb-5" id="backups">
@@ -325,6 +371,48 @@
                 errorDiv.classList.remove('d-none');
             });
         });
+
+        document.getElementById('addDelivererForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const errorDiv = document.getElementById('delivererModalErrorMessage');
+            errorDiv.classList.add('d-none');
+
+            const restIdVal = document.getElementById('delRestaurant').value;
+            const payload = {
+                username: document.getElementById('delUsername').value,
+                email: document.getElementById('delEmail').value,
+                password: document.getElementById('delPassword').value,
+                firstName: document.getElementById('delFirstName').value,
+                lastName: document.getElementById('delLastName').value,
+                phone: document.getElementById('delPhone').value,
+                role: "DELIVERY",
+                restaurantId: restIdVal ? parseInt(restIdVal) : null
+            };
+
+            fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    const err = await response.json();
+                    throw new Error(err.message || "Erreur lors de la création du livreur");
+                }
+            })
+            .then(() => {
+                location.reload();
+            })
+            .catch(error => {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('d-none');
+            });
+        });
     </script>
 
     <!-- Add Restaurant Modal -->
@@ -398,6 +486,57 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-4 fw-bold">Créer le Restaurant et l'Administrateur</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Deliverer Modal -->
+    <div class="modal fade" id="addDelivererModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0" style="border-radius: var(--border-radius);">
+                <div class="modal-header border-0 bg-light p-4">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-bicycle me-2"></i>Enregistrer un Livreur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-dark">
+                    <div id="delivererModalErrorMessage" class="alert alert-danger d-none" role="alert"></div>
+                    <form id="addDelivererForm">
+                        <div class="mb-3">
+                            <label for="delUsername" class="form-label small fw-bold">Identifiant Unique</label>
+                            <input type="text" class="form-control bg-light text-dark" id="delUsername" placeholder="Ex: jean_livreur" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delEmail" class="form-label small fw-bold">Adresse Email</label>
+                            <input type="email" class="form-control bg-light text-dark" id="delEmail" placeholder="jean@mail.com" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col">
+                                <label for="delFirstName" class="form-label small fw-bold">Prénom</label>
+                                <input type="text" class="form-control bg-light text-dark" id="delFirstName" placeholder="Jean" required>
+                            </div>
+                            <div class="col">
+                                <label for="delLastName" class="form-label small fw-bold">Nom</label>
+                                <input type="text" class="form-control bg-light text-dark" id="delLastName" placeholder="Livreur" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delPhone" class="form-label small fw-bold">Téléphone</label>
+                            <input type="text" class="form-control bg-light text-dark" id="delPhone" placeholder="+221 77..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delPassword" class="form-label small fw-bold">Mot de Passe</label>
+                            <input type="password" class="form-control bg-light text-dark" id="delPassword" placeholder="Min. 6 caractères" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delRestaurant" class="form-label small fw-bold">Rattachement Restaurant (Optionnel)</label>
+                            <select id="delRestaurant" class="form-select bg-light text-dark">
+                                <option value="">Global / Plateforme (Indépendant)</option>
+                                <option th:each="r : ${restaurants}" th:value="${r.id}" th:text="${r.name}"></option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-3 fw-bold">Créer le Livreur</button>
                     </form>
                 </div>
             </div>
