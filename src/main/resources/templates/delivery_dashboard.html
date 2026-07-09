@@ -60,13 +60,15 @@
                                     <td>
                                         <!-- Actions depend on status -->
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-warning btn-sm rounded-pill px-3" 
-                                                    th:if="${del.status.name() == 'READY'}" 
-                                                    th:onclick="'updateDeliveryStatus(' + ${del.id} + ', \'PICKED_UP\')'">Récupérer</button>
-                                                    
-                                            <button class="btn btn-success btn-sm rounded-pill px-3" 
-                                                    th:if="${del.status.name() == 'PICKED_UP'}" 
-                                                    th:onclick="'updateDeliveryStatus(' + ${del.id} + ', \'COMPLETED\')'">Livrer <i class="bi bi-check-lg"></i></button>
+                                             <button class="btn btn-warning btn-sm rounded-pill px-3" 
+                                                     th:if="${del.status.name() == 'READY'}" 
+                                                     th:data-id="${del.id}"
+                                                     onclick="updateDeliveryStatus(this.getAttribute('data-id'), 'PICKED_UP')">Récupérer</button>
+                                                     
+                                             <button class="btn btn-success btn-sm rounded-pill px-3" 
+                                                     th:if="${del.status.name() == 'PICKED_UP'}" 
+                                                     th:data-id="${del.id}"
+                                                     onclick="updateDeliveryStatus(this.getAttribute('data-id'), 'COMPLETED')">Livrer <i class="bi bi-check-lg"></i></button>
                                         </div>
                                     </td>
                                 </tr>

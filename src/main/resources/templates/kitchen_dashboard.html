@@ -12,8 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <!-- SockJS and STOMP -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         body {
@@ -83,7 +82,7 @@
                                 </li>
                             </ul>
                             
-                            <button class="btn btn-primary btn-sm w-100 rounded-pill" th:onclick="'updateStatus(' + ${ord.id} + ', \'PREPARING\')'">Préparer <i class="bi bi-play-fill ms-1"></i></button>
+                            <button class="btn btn-primary btn-sm w-100 rounded-pill" th:data-id="${ord.id}" onclick="updateStatus(this.getAttribute('data-id'), 'PREPARING')">Préparer <i class="bi bi-play-fill ms-1"></i></button>
                         </div>
                     </div>
                 </div>
@@ -113,7 +112,7 @@
                                 </li>
                             </ul>
                             
-                            <button class="btn btn-success btn-sm w-100 rounded-pill" th:onclick="'updateStatus(' + ${ord.id} + ', \'READY\')'">Prêt <i class="bi bi-check-lg ms-1"></i></button>
+                            <button class="btn btn-success btn-sm w-100 rounded-pill" th:data-id="${ord.id}" onclick="updateStatus(this.getAttribute('data-id'), 'READY')">Prêt <i class="bi bi-check-lg ms-1"></i></button>
                         </div>
                     </div>
                 </div>
@@ -143,7 +142,7 @@
                                 </li>
                             </ul>
                             
-                            <button class="btn btn-outline-light btn-sm w-100 rounded-pill" th:onclick="'updateStatus(' + ${ord.id} + ', \'SERVED\')'">Servie <i class="bi bi-egg me-1"></i></button>
+                            <button class="btn btn-outline-light btn-sm w-100 rounded-pill" th:data-id="${ord.id}" onclick="updateStatus(this.getAttribute('data-id'), 'SERVED')">Servie <i class="bi bi-egg me-1"></i></button>
                         </div>
                     </div>
                 </div>
