@@ -24,7 +24,10 @@
     <!-- Header -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <span class="navbar-brand mb-0 h1 fw-bold text-primary"><i class="bi bi-bicycle me-2"></i>Delis Divin - Livraison</span>
+            <span class="navbar-brand mb-0 h1 fw-bold text-primary d-flex align-items-center gap-2">
+                <img th:src="@{'/images/logo delisdivin.png'}" style="height: 35px; object-fit: contain; filter: brightness(0) invert(1);" alt="Delis Divin Logo">
+                <span>Delis Divin - Livraison</span>
+            </span>
             <a href="/login" class="btn btn-outline-danger btn-sm rounded-pill" onclick="logout()">Déconnexion</a>
         </div>
     </nav>

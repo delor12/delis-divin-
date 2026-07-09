@@ -14,6 +14,9 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SockJS and STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         body {
             font-family: 'Outfit', sans-serif;
@@ -596,7 +599,84 @@
                     }
                 }
             });
+
+            // Web Audio synthesized chime sound for notifications (no asset downloads needed)
+            function playNotificationSound() {
+                try {
+                    const context = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // First Note
+                    const osc1 = context.createOscillator();
+                    const gain1 = context.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(587.33, context.currentTime); // D5
+                    gain1.gain.setValueAtTime(0.3, context.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.15);
+                    osc1.start(context.currentTime);
+                    osc1.stop(context.currentTime + 0.15);
+                    
+                    // Second Note
+                    const osc2 = context.createOscillator();
+                    const gain2 = context.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(context.destination);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(880, context.currentTime + 0.12); // A5
+                    gain2.gain.setValueAtTime(0, context.currentTime);
+                    gain2.gain.setValueAtTime(0.3, context.currentTime + 0.12);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.40);
+                    osc2.start(context.currentTime + 0.12);
+                    osc2.stop(context.currentTime + 0.40);
+                } catch (e) {
+                    console.error("Audio playback error:", e);
+                }
+            }
+
+            // WebSocket connection logic
+            function connect() {
+                const socket = new SockJS('/ws');
+                const stompClient = Stomp.over(socket);
+                stompClient.debug = null; // disable console logging for clean look
+
+                stompClient.connect({}, function (frame) {
+                    // Subscribe to new orders topic
+                    stompClient.subscribe(`/topic/restaurant/${restaurantId}/orders`, function (messageOutput) {
+                        const order = JSON.parse(messageOutput.body);
+                        playNotificationSound();
+                        
+                        // Show notification Toast
+                        const detailsSpan = document.getElementById('toastOrderDetails');
+                        detailsSpan.textContent = `Commande #${order.id} passée pour ${order.clientName} (Type: ${order.type == 'IN_REST' ? 'Sur place' : 'À emporter/Livraison'})`;
+                        const toast = new bootstrap.Toast(document.getElementById('newOrderToast'));
+                        toast.show();
+                    });
+                }, function (error) {
+                    setTimeout(connect, 5000); // Retry reconnect in 5 seconds
+                });
+            }
+
+            // Connect WebSocket on page load
+            connect();
         });
     </script>
+
+    <!-- Bootstrap Real-time Notification Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+        <div id="newOrderToast" class="toast border-0 text-white bg-primary shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: var(--border-radius); cursor: pointer;" onclick="location.reload()">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-3 p-3">
+                    <i class="bi bi-bell-fill fs-4 text-warning"></i>
+                    <div>
+                        <strong class="d-block mb-1 fs-6">Nouvelle Commande Reçue !</strong>
+                        <span id="toastOrderDetails" class="small opacity-90">Une nouvelle commande a été enregistrée.</span>
+                        <small class="d-block text-warning mt-1 fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Cliquez pour actualiser la page</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

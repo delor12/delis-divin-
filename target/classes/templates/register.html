@@ -166,10 +166,12 @@
                 active: true
             };
 
-            fetch('/api/public/restaurants', {
+            const token = localStorage.getItem('token');
+            fetch('/api/super-admin/restaurants', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify(restaurantData)
             })
