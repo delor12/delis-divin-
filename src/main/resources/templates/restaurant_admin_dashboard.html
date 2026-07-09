@@ -38,11 +38,19 @@
             <span th:text="${restaurant.name}">Gérant</span>
         </a>
         <ul class="sidebar-menu">
+            fix-seed-divine-mere-association
             <li><a href="#" class="sidebar-link active" onclick="showSection('dashboard', this)"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
             <li><a href="#" class="sidebar-link" onclick="showSection('products', this)"><i class="bi bi-egg-fried"></i><span>Menu & Stocks</span></a></li>
             <li><a href="#" class="sidebar-link" onclick="showSection('categories', this)"><i class="bi bi-tags"></i><span>Catégories</span></a></li>
             <li><a href="#" class="sidebar-link" onclick="showSection('employees', this)"><i class="bi bi-people"></i><span>Employés</span></a></li>
             <li><a href="#" class="sidebar-link" onclick="showSection('orders', this)"><i class="bi bi-receipt"></i><span>Commandes</span></a></li>
+
+            <li><a href="#" class="sidebar-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('products')"><i class="bi bi-egg-fried"></i><span>Menu & Stocks</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('categories')"><i class="bi bi-tags"></i><span>Catégories</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('employees')"><i class="bi bi-people"></i><span>Employés</span></a></li>
+            <li><a href="#" class="sidebar-link" onclick="showSection('orders')"><i class="bi bi-receipt"></i><span>Commandes</span></a></li>
+         main
             <li>
                 <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#clientChatModal" onclick="openChatModal()">
                     <i class="bi bi-chat-dots"></i>

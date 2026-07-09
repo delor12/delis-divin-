@@ -144,6 +144,10 @@ public class DataInitializer implements CommandLineRunner {
         superAdmin.setActive(true);
         userRepository.save(superAdmin);
 
+        fix-seed-divine-mere-association
+
+        feature-seed-divine-mere-accounts
+        main
         // Gérant (Admin) - Divine Mère
         AppUser gerantDM = new AppUser();
         gerantDM.setUsername("gerant_divinemere");
@@ -153,7 +157,11 @@ public class DataInitializer implements CommandLineRunner {
         gerantDM.setLastName("Ndiaye");
         gerantDM.setPhone("+221 77 987 65 43");
         gerantDM.setRole(Role.RESTAURANT_ADMIN);
+        fix-seed-divine-mere-association
         gerantDM.setRestaurant(epieurien);
+
+        gerantDM.setRestaurant(bistrot);
+        main
         gerantDM.setActive(true);
         userRepository.save(gerantDM);
 
@@ -166,10 +174,17 @@ public class DataInitializer implements CommandLineRunner {
         serveurDM.setLastName("Sow");
         serveurDM.setPhone("+221 77 654 32 10");
         serveurDM.setRole(Role.SERVER);
+        fix-seed-divine-mere-association
         serveurDM.setRestaurant(epieurien);
         serveurDM.setActive(true);
         userRepository.save(serveurDM);
 
+        serveurDM.setRestaurant(bistrot);
+        serveurDM.setActive(true);
+        userRepository.save(serveurDM);
+
+        main
+        main
         // 5. Seed Product Categories
         ProductCategory ent = new ProductCategory();
         ent.setName("Entrées");
