@@ -6,10 +6,6 @@ public enum PaymentMethod {
     MTN_MONEY,
     WAVE,
     FREE_MONEY,
-feature/delivery-and-cashier-dashboards
     CARD,
     BANK_TRANSFER
-
-    CARD
-main
 }

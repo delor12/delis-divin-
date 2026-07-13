@@ -651,16 +651,12 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(orderPayload)
-            })
- feature/delivery-and-cashier-dashboards
             .then(res => {
                 if (!res.ok) {
                     return res.json().then(err => { throw new Error(err.message || "Erreur lors de la commande"); });
                 }
                 return res.json();
             })
-
- main
             .then(order => {
                 if (orderType === 'TAKE_AWAY' || orderType === 'DELIVERY') {
                     // Show payment modal
