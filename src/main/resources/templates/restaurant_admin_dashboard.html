@@ -333,7 +333,7 @@
                             <label for="prodCategory" class="form-label small fw-bold">Catégorie</label>
                             <select id="prodCategory" class="form-select bg-light" required>
                                 <option value="" disabled selected>Choisir la Catégorie</option>
-                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.parentCategoryName != null} ? ${cat.parentCategoryName} + ' > ' + ${cat.name} : ${cat.name} + ' (Principale)'"></option>
                             </select>
                         </div>
                         <div class="row g-2 mb-3">
