@@ -122,6 +122,7 @@ public class WebViewController {
         Long restaurantId = user.getRestaurantId();
         model.addAttribute("restaurant", restaurantService.getRestaurantById(restaurantId));
         model.addAttribute("orders", orderService.getActiveOrdersByRestaurant(restaurantId));
+        model.addAttribute("cookedToday", orderService.getCookedOrdersToday(restaurantId));
         return "kitchen_dashboard";
     }
 
@@ -144,6 +145,9 @@ public class WebViewController {
         model.addAttribute("restaurant", restaurantService.getRestaurantById(restaurantId));
         model.addAttribute("orders", orderService.getActiveOrdersByRestaurant(restaurantId));
         model.addAttribute("payments", paymentService.getPaymentsByRestaurant(restaurantId));
+        model.addAttribute("products", productService.getProductsByRestaurant(restaurantId));
+        model.addAttribute("categories", productService.getCategoriesByRestaurant(restaurantId));
+        model.addAttribute("salesReport", reportService.getDailySalesReport(restaurantId));
         return "cashier_dashboard";
     }
 
@@ -152,6 +156,8 @@ public class WebViewController {
     @GetMapping("/delivery/dashboard")
     public String deliveryDashboard(@AuthenticationPrincipal UserDetailsImpl user, Model model) {
         model.addAttribute("deliveries", orderService.getOrdersByDeliveryPerson(user.getId()));
+        model.addAttribute("availableOrders", orderService.getAvailableDeliveryOrders(user.getId()));
+        model.addAttribute("currentUser", userService.getUserById(user.getId()));
         return "delivery_dashboard";
     }
 

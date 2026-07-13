@@ -282,10 +282,22 @@
                         <tbody>
                             <tr th:each="ord : ${orders}">
                                 <td class="fw-bold text-dark" th:text="'#' + ${ord.id}">#1</td>
-                                <td th:text="${ord.clientName}">Client</td>
-                                <td th:text="${ord.type}">IN_REST</td>
                                 <td>
-                                    <span class="badge" th:classappend="${ord.status == 'COMPLETED'} ? 'bg-success' : (${ord.status == 'CANCELLED'} ? 'bg-secondary' : 'bg-primary')" th:text="${ord.status}">PENDING</span>
+                                    <span th:text="${ord.clientName}">Client</span>
+                                    <div th:if="${ord.type.name() == 'DELIVERY'}" class="text-danger small mt-1">
+                                        <i class="bi bi-geo-alt-fill"></i> <span th:text="${ord.clientAddress}">Dakar</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:text="${ord.type}">IN_REST</span>
+                                    <div th:if="${ord.deliveryPersonName != null}" class="text-muted small mt-1">
+                                        <i class="bi bi-bicycle"></i> <span th:text="${ord.deliveryPersonName}">Livreur</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${ord.status.name() == 'COMPLETED'} ? 'bg-success' : (${ord.status.name() == 'CANCELLED'} ? 'bg-secondary' : 'bg-primary')" th:text="${ord.status}">PENDING</span>
+                                    <span th:if="${ord.paid}" class="badge bg-success-subtle text-success border border-success ms-1">Payé</span>
+                                    <span th:if="${!ord.paid}" class="badge bg-danger-subtle text-danger border border-danger ms-1">Non payé</span>
                                 </td>
                                 <td th:text="${#numbers.formatDecimal(ord.totalAmount, 0, 'POINT', 0, 'COMMA')} + ' F'">1000 F</td>
                                 <td th:text="${ord.createdAt}">Date</td>
@@ -894,6 +906,30 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav d-md-none">
+        <a href="#" class="sidebar-link active" onclick="showSection('dashboard', this)">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#" class="sidebar-link" onclick="showSection('products', this)">
+            <i class="bi bi-egg-fried"></i>
+            <span>Menu</span>
+        </a>
+        <a href="#" class="sidebar-link" onclick="showSection('categories', this)">
+            <i class="bi bi-tags"></i>
+            <span>Catégories</span>
+        </a>
+        <a href="#" class="sidebar-link" onclick="showSection('employees', this)">
+            <i class="bi bi-people"></i>
+            <span>Employés</span>
+        </a>
+        <a href="#" class="sidebar-link" onclick="showSection('orders', this)">
+            <i class="bi bi-receipt"></i>
+            <span>Commandes</span>
+        </a>
     </div>
 
     <!-- Bootstrap Real-time Notification Toast -->

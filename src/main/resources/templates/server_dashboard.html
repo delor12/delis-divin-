@@ -81,11 +81,32 @@
             </div>
         </div>
     </nav>
+    <!-- Tab Navigation -->
+    <div class="container mt-4">
+        <ul class="nav nav-pills gap-2 p-1.5 bg-white shadow-sm rounded-pill justify-content-center" style="max-width: 650px; margin: 0 auto; padding: 6px;">
+            <li class="nav-item">
+                <button class="nav-link active rounded-pill px-4" id="tab-btn-salle" onclick="switchTab('salle')">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>Salle & Commandes
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill px-4" id="tab-btn-suivi" onclick="switchTab('suivi')">
+                    <i class="bi bi-receipt me-2"></i>Suivi des Commandes
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill px-4" id="tab-btn-gestion" onclick="switchTab('gestion')">
+                    <i class="bi bi-gear me-2"></i>Gestion de Salle
+                </button>
+            </li>
+        </ul>
+    </div>
 
     <!-- Main Workspace -->
-    <div class="container my-5">
-        <div class="row g-4">
-            
+    <div class="container my-4">
+        
+        <!-- TAB 1: SALLE & COMMANDES -->
+        <div id="salle-tab" class="tab-content row g-4">
             <!-- Left Column: Tables Grid -->
             <div class="col-lg-8">
                 <div class="card premium-card p-4">
@@ -168,19 +189,412 @@
                         <button class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold" onclick="submitServerOrder()">Envoyer en Cuisine</button>
                     </div>
                 </div>
-
             </div>
-
         </div>
+
+        <!-- TAB 2: SUIVI DES COMMANDES -->
+        <div id="suivi-tab" class="tab-content d-none">
+            <div class="card premium-card p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <h5 class="fw-bold text-primary mb-0"><i class="bi bi-receipt me-2"></i>Suivi des Commandes du Restaurant</h5>
+                    <div class="btn-group btn-group-sm rounded-pill p-1 bg-light flex-wrap">
+                        <button class="btn btn-outline-primary rounded-pill px-3 active" id="filter-all" onclick="filterSuiviOrders('ALL', this)">Toutes</button>
+                        <button class="btn btn-outline-primary rounded-pill px-3" onclick="filterSuiviOrders('PENDING', this)">En attente</button>
+                        <button class="btn btn-outline-primary rounded-pill px-3" onclick="filterSuiviOrders('PREPARING', this)">En préparation</button>
+                        <button class="btn btn-outline-primary rounded-pill px-3" onclick="filterSuiviOrders('READY', this)">Prêtes / À Servir</button>
+                        <button class="btn btn-outline-primary rounded-pill px-3" onclick="filterSuiviOrders('SERVED', this)">Servies</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>N° Commande</th>
+                                <th>Table / Client</th>
+                                <th>Articles commandés</th>
+                                <th>Total</th>
+                                <th>Serveur assigné</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suiviOrdersTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Chargement des commandes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: GESTION DE LA SALLE -->
+        <div id="gestion-tab" class="tab-content d-none">
+            <div class="row g-4">
+                <!-- Left: Add table card -->
+                <div class="col-lg-4">
+                    <div class="card premium-card p-4">
+                        <h5 class="fw-bold text-primary mb-4"><i class="bi bi-plus-circle-fill me-2"></i>Ajouter une Table</h5>
+                        <form id="addTableForm" onsubmit="createNewTable(event)">
+                            <div class="mb-3">
+                                <label for="tableNumInput" class="form-label small fw-bold text-muted text-uppercase">Numéro de la Table</label>
+                                <input type="number" class="form-control bg-light border-0 text-dark" id="tableNumInput" required placeholder="Ex: 5" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="tableCapInput" class="form-label small fw-bold text-muted text-uppercase">Capacité (Couverts)</label>
+                                <input type="number" class="form-control bg-light border-0 text-dark" id="tableCapInput" required placeholder="Ex: 4" min="1">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold">Créer la Table</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- Right: Tables list for deletion -->
+                <div class="col-lg-8">
+                    <div class="card premium-card p-4">
+                        <h5 class="fw-bold text-primary mb-4"><i class="bi bi-list-stars me-2"></i>Liste des Tables du Plan</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr class="text-muted small">
+                                        <th>Table N°</th>
+                                        <th>Capacité (Places)</th>
+                                        <th>Statut Actuel</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mgmtTablesTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">Chargement des tables...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
     </div>
 
     <!-- Bootstrap Bundle with Popper JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
         const restaurantId = [[${restaurant.id}]];
+        let deliveryPersonnel = [];
+        
+        function loadDeliveryPersonnel() {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/${restaurantId}/users?role=DELIVERY`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => res.json())
+            .then(users => {
+                deliveryPersonnel = users;
+            })
+            .catch(err => console.error("Error loading delivery personnel:", err));
+        }
+
+        loadDeliveryPersonnel();
         let selectedTableId = null;
         let selectedTableNumber = null;
         let serverOrderItems = [];
+
+        // Tab switching logic
+        let currentActiveTab = 'salle';
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('d-none');
+                el.classList.remove('row');
+            });
+            // Deactivate all tab buttons
+            document.querySelectorAll('.nav-pills .nav-link').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            const targetTab = document.getElementById(tabId + '-tab');
+            targetTab.classList.remove('d-none');
+            if (tabId === 'salle') {
+                targetTab.classList.add('row'); // Keep row class for grid layout
+            }
+            document.getElementById('tab-btn-' + tabId).classList.add('active');
+
+            // Load data accordingly
+            if (tabId === 'suivi') {
+                loadOrders();
+            } else if (tabId === 'gestion') {
+                loadTablesForManagement();
+            }
+        }
+
+        // --- Orders Tracking Logic (TAB 2) ---
+        let currentOrderFilter = 'ALL';
+        function filterSuiviOrders(status, btn) {
+            currentOrderFilter = status;
+            // Highlight button
+            btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadOrders();
+        }
+
+        function loadOrders() {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/${restaurantId}/orders`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => res.json())
+            .then(orders => {
+                const tbody = document.getElementById('suiviOrdersTableBody');
+                tbody.innerHTML = '';
+
+                // Filter orders
+                let filtered = orders;
+                if (currentOrderFilter !== 'ALL') {
+                    filtered = orders.filter(o => o.status === currentOrderFilter);
+                }
+
+                // Sort by ID descending
+                filtered.sort((a, b) => b.id - a.id);
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Aucune commande trouvée.</td></tr>`;
+                    return;
+                }
+
+                filtered.forEach(order => {
+                    // Build items string
+                    const itemsText = order.orderItems.map(it => `${it.quantity}x ${it.productName}`).join(', ');
+                    
+                    // Build status badge
+                    let badgeClass = 'bg-secondary';
+                    let statusLabel = order.status;
+                    if (order.status === 'PENDING') { badgeClass = 'bg-warning text-dark'; statusLabel = 'En attente'; }
+                    else if (order.status === 'PREPARING') { badgeClass = 'bg-info text-white'; statusLabel = 'En préparation'; }
+                    else if (order.status === 'READY') { badgeClass = 'bg-success text-white'; statusLabel = 'Prête / À Servir'; }
+                    else if (order.status === 'SERVED') { badgeClass = 'bg-primary text-white'; statusLabel = 'Servie'; }
+                    else if (order.status === 'COMPLETED') { badgeClass = 'bg-dark text-white'; statusLabel = 'Terminée'; }
+                    else if (order.status === 'CANCELLED') { badgeClass = 'bg-danger text-white'; statusLabel = 'Annulée'; }
+
+                    const paymentBadge = order.paid ? 
+                        `<span class="badge bg-success-subtle text-success border border-success ms-1">Payé</span>` : 
+                        `<span class="badge bg-danger-subtle text-danger border border-danger ms-1">Non payé</span>`;
+                    const statusBadge = `<span class="badge ${badgeClass}">${statusLabel}</span>${paymentBadge}`;
+
+                    // Build actions column
+                    let actions = '';
+                    if (order.status === 'PENDING') {
+                        actions += `<button class="btn btn-outline-primary btn-sm rounded-pill px-3 me-2" onclick="assignMe(${order.id})"><i class="bi bi-person-plus me-1"></i>S'assigner</button>`;
+                    }
+                    if (order.status === 'READY') {
+                        actions += `<button class="btn btn-success btn-sm rounded-pill px-3 me-2" onclick="updateOrderState(${order.id}, 'SERVED')"><i class="bi bi-check-lg me-1"></i>Servie</button>`;
+                    }
+                    if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
+                        actions += `<button class="btn btn-outline-danger btn-sm rounded-pill px-2" onclick="updateOrderState(${order.id}, 'CANCELLED')"><i class="bi bi-x-circle"></i></button>`;
+                    } else {
+                        actions += `<span class="text-muted small">-</span>`;
+                    }
+
+                    const waiterName = order.waiterName || '<span class="text-muted small">Non assigné</span>';
+
+                    // Delivery Address and Driver Assignment
+                    let clientDisplay = order.clientName;
+                    let deliveryDisplay = '';
+                    if (order.type === 'DELIVERY') {
+                        clientDisplay = `
+                            <div>
+                                <span class="fw-bold">${order.clientName}</span>
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Livraison: <strong>${order.clientAddress || 'Adresse non spécifiée'}</strong>
+                                </div>
+                            </div>
+                        `;
+                        
+                        if (order.deliveryPersonName) {
+                            deliveryDisplay = `
+                                <div class="mt-1">
+                                    <span class="badge bg-info-subtle text-info small"><i class="bi bi-bicycle me-1"></i>Livreur: ${order.deliveryPersonName}</span>
+                                </div>
+                            `;
+                        } else if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
+                            const options = deliveryPersonnel.map(u => `<option value="${u.id}">${u.firstName} ${u.lastName}</option>`).join('');
+                            deliveryDisplay = `
+                                <div class="mt-1">
+                                    <select class="form-select form-select-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onchange="assignDelivery(${order.id}, this.value)">
+                                        <option value="" selected disabled>Assigner Livreur</option>
+                                        ${options}
+                                    </select>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="fw-bold">#${order.id}</td>
+                        <td>${clientDisplay}</td>
+                        <td class="small text-truncate" style="max-width: 250px;" title="${itemsText}">${itemsText}</td>
+                        <td class="fw-bold text-primary">${order.totalAmount.toLocaleString()} F</td>
+                        <td>
+                            <div>Serveur: ${waiterName}</div>
+                            ${deliveryDisplay}
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td>${actions}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function assignMe(orderId) {
+            const token = localStorage.getItem('token');
+            const userObj = JSON.parse(localStorage.getItem('user') || '{}');
+            const waiterId = userObj.id;
+
+            if (!waiterId) {
+                alert("Erreur de session. Veuillez vous reconnecter.");
+                return;
+            }
+
+            fetch(`/api/restaurant/order/${orderId}/waiter?waiterId=${waiterId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.ok) {
+                    loadOrders();
+                } else {
+                    alert("Erreur lors de l'assignation.");
+                }
+            });
+        }
+
+        function assignDelivery(orderId, deliveryPersonId) {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/order/${orderId}/delivery-person?deliveryPersonId=${deliveryPersonId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.ok) {
+                    loadOrders();
+                } else {
+                    alert("Erreur lors de l'assignation du livreur.");
+                }
+            });
+        }
+
+        function updateOrderState(orderId, newStatus) {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/order/${orderId}/status?status=${newStatus}`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.ok) {
+                    loadOrders();
+                } else {
+                    return res.json().then(err => {
+                        alert(err.message || "Erreur lors du changement de statut.");
+                    }).catch(() => {
+                        alert("Erreur lors du changement de statut.");
+                    });
+                }
+            });
+        }
+
+        // --- Table Management Logic (TAB 3) ---
+        function loadTablesForManagement() {
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/${restaurantId}/tables`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => res.json())
+            .then(tables => {
+                const tbody = document.getElementById('mgmtTablesTableBody');
+                tbody.innerHTML = '';
+
+                tables.sort((a, b) => a.number - b.number);
+
+                if (tables.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Aucune table configurée.</td></tr>`;
+                    return;
+                }
+
+                tables.forEach(table => {
+                    let badgeClass = 'bg-secondary';
+                    let statusLabel = table.status;
+                    if (table.status === 'FREE') { badgeClass = 'bg-success text-white'; statusLabel = 'Libre'; }
+                    else if (table.status === 'RESERVED') { badgeClass = 'bg-warning text-dark'; statusLabel = 'Réservée'; }
+                    else if (table.status === 'OCCUPIED') { badgeClass = 'bg-danger text-white'; statusLabel = 'Occupée'; }
+
+                    const statusBadge = `<span class="badge ${badgeClass}">${statusLabel}</span>`;
+                    const deleteBtn = `<button class="btn btn-outline-danger btn-sm rounded-circle" onclick="deleteTable(${table.id})"><i class="bi bi-trash"></i></button>`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="fw-bold">Table ${table.number}</td>
+                        <td>${table.capacity} Couverts</td>
+                        <td>${statusBadge}</td>
+                        <td>${deleteBtn}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function createNewTable(event) {
+            event.preventDefault();
+            const token = localStorage.getItem('token');
+            const number = parseInt(document.getElementById('tableNumInput').value);
+            const capacity = parseInt(document.getElementById('tableCapInput').value);
+
+            const payload = {
+                number: number,
+                capacity: capacity,
+                status: 'FREE',
+                xCoordinate: 50.0,
+                yCoordinate: 50.0
+            };
+
+            fetch(`/api/restaurant/${restaurantId}/tables`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (res.ok) {
+                    document.getElementById('addTableForm').reset();
+                    loadTablesForManagement();
+                    alert("Table créée avec succès !");
+                } else {
+                    alert("Erreur lors de la création de la table.");
+                }
+            });
+        }
+
+        function deleteTable(tableId) {
+            if (!confirm("Voulez-vous vraiment supprimer cette table définitivement ?")) {
+                return;
+            }
+            const token = localStorage.getItem('token');
+            fetch(`/api/restaurant/table/${tableId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.ok) {
+                    loadTablesForManagement();
+                    alert("Table supprimée avec succès.");
+                } else {
+                    alert("Erreur lors de la suppression de la table.");
+                }
+            });
+        }
 
         function logout() {
             document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
@@ -370,7 +784,11 @@
                     
                     // Show notification Toast
                     const detailsSpan = document.getElementById('toastOrderDetails');
-                    detailsSpan.textContent = `Commande #${order.id} passée pour ${order.clientName} (Type: ${order.type == 'IN_REST' ? 'Sur place' : 'À emporter/Livraison'})`;
+                    let msgText = `Commande #${order.id} passée pour ${order.clientName} (Type: ${order.type == 'IN_REST' ? 'Sur place' : 'À emporter/Livraison'})`;
+                    if (order.paid) {
+                        msgText = `💰 Paiement validé pour la Commande #${order.id} (${order.clientName}) - Montant: ${order.totalAmount.toLocaleString()} F`;
+                    }
+                    detailsSpan.textContent = msgText;
                     const toast = new bootstrap.Toast(document.getElementById('newOrderToast'));
                     toast.show();
 
@@ -383,6 +801,9 @@
                             if (badge) badge.textContent = 'Occupée';
                         }
                     }
+
+                    // Reload orders list instantly
+                    loadOrders();
                 });
 
                 // Subscribe to chat topic

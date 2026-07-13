@@ -120,7 +120,7 @@
                 localStorage.setItem('user', JSON.stringify(data.user));
 
                 // Save token in Cookie for Server-Side Thymeleaf authorization
-                document.cookie = "jwt=" + data.token + "; path=/; max-age=" + (24 * 60 * 60) + "; SameSite=Lax";
+                document.cookie = "jwt=" + data.token + "; path=/; max-age=" + (24 * 60 * 60) + "; SameSite=Lax; Secure";
 
                 // Redirect based on role
                 const role = data.user.role;

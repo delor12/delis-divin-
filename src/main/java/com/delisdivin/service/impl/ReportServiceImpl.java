@@ -232,4 +232,45 @@ public class ReportServiceImpl implements ReportService {
 
         return stats;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getDailySalesReport(Long restaurantId) {
+        Map<String, Object> report = new HashMap<>();
+
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endOfDay = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).withNano(999999999);
+
+        List<Payment> todayPayments = paymentRepository.findByRestaurantIdAndCreatedAtBetween(restaurantId, startOfDay, endOfDay);
+
+        double totalRevenue = todayPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.SUCCESS)
+                .mapToDouble(Payment::getAmount)
+                .sum();
+
+        long transactionCount = todayPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.SUCCESS)
+                .count();
+
+        // Breakdowns by payment methods
+        Map<String, Double> breakdown = new HashMap<>();
+        for (PaymentMethod method : PaymentMethod.values()) {
+            breakdown.put(method.name(), 0.0);
+        }
+
+        for (Payment payment : todayPayments) {
+            if (payment.getStatus() == PaymentStatus.SUCCESS) {
+                String methodName = payment.getPaymentMethod().name();
+                breakdown.put(methodName, breakdown.getOrDefault(methodName, 0.0) + payment.getAmount());
+            }
+        }
+
+        report.put("totalRevenue", totalRevenue);
+        report.put("transactionCount", transactionCount);
+        report.put("breakdown", breakdown);
+        report.put("payments", todayPayments);
+        report.put("date", LocalDateTime.now());
+
+        return report;
+    }
 }

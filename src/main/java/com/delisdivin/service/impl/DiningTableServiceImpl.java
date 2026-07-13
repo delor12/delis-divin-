@@ -8,6 +8,8 @@ import com.delisdivin.exception.ResourceNotFoundException;
 import com.delisdivin.mapper.AppMapper;
 import com.delisdivin.repository.DiningTableRepository;
 import com.delisdivin.repository.RestaurantRepository;
+import com.delisdivin.repository.OrderRepository;
+import com.delisdivin.entity.Order;
 import com.delisdivin.service.DiningTableService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class DiningTableServiceImpl implements DiningTableService {
 
     private final DiningTableRepository tableRepository;
     private final RestaurantRepository restaurantRepository;
+    private final OrderRepository orderRepository;
     private final AppMapper mapper;
 
     @Override
@@ -98,6 +101,13 @@ public class DiningTableServiceImpl implements DiningTableService {
     public void deleteTable(Long id) {
         DiningTable table = tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Dining table not found with ID: " + id));
+        
+        List<Order> orders = orderRepository.findByTableId(id);
+        if (orders != null && !orders.isEmpty()) {
+            orders.forEach(order -> order.setTable(null));
+            orderRepository.saveAll(orders);
+        }
+        
         tableRepository.delete(table);
     }
 }

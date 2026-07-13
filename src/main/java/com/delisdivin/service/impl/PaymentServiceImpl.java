@@ -1,6 +1,7 @@
 package com.delisdivin.service.impl;
 
 import com.delisdivin.dto.BillDTO;
+import com.delisdivin.dto.OrderDTO;
 import com.delisdivin.dto.PaymentDTO;
 import com.delisdivin.entity.*;
 import com.delisdivin.exception.BadRequestException;
@@ -12,9 +13,11 @@ import com.delisdivin.repository.PaymentRepository;
 import com.delisdivin.repository.RestaurantRepository;
 import com.delisdivin.service.PaymentService;
 import com.delisdivin.utils.PdfGenerator;
+import com.delisdivin.repository.DiningTableRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +38,10 @@ public class PaymentServiceImpl implements PaymentService {
     private final BillRepository billRepository;
     private final OrderRepository orderRepository;
     private final RestaurantRepository restaurantRepository;
+    private final DiningTableRepository tableRepository;
     private final AppMapper mapper;
     private final PdfGenerator pdfGenerator;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${app.upload.dir:./uploads}")
     private String uploadDir;
@@ -61,9 +66,28 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
-        // Update Order status to COMPLETED (if paid in full)
-        order.setStatus(OrderStatus.COMPLETED);
+        // Mark the order as paid
+        order.setPaid(true);
+
+        // If the order has already been served, mark it as COMPLETED and release the table if applicable
+        if (order.getStatus() == OrderStatus.SERVED) {
+            order.setStatus(OrderStatus.COMPLETED);
+            if (order.getTable() != null) {
+                DiningTable table = order.getTable();
+                table.setStatus(TableStatus.FREE);
+                tableRepository.save(table);
+            }
+        }
         orderRepository.save(order);
+
+        // Notify dashboards via WebSocket
+        try {
+            OrderDTO orderDto = mapper.toDto(order);
+            messagingTemplate.convertAndSend("/topic/restaurant/" + order.getRestaurant().getId() + "/orders", orderDto);
+            messagingTemplate.convertAndSend("/topic/restaurant/" + order.getRestaurant().getId() + "/kitchen", orderDto);
+        } catch (Exception e) {
+            log.error("Failed to send WebSocket update: {}", e.getMessage());
+        }
 
         // Generate Bill invoice automatically
         generateInvoice(order.getId());

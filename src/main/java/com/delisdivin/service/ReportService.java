@@ -8,4 +8,5 @@ public interface ReportService {
     byte[] generateSalesReportCsv(Long restaurantId, LocalDateTime start, LocalDateTime end);
     Map<String, Object> getRestaurantStats(Long restaurantId);
     Map<String, Object> getGlobalStats();
+    Map<String, Object> getDailySalesReport(Long restaurantId);
 }

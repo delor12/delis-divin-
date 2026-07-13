@@ -308,6 +308,68 @@
         </div>
     </div>
 
+    <!-- Client Payment Modal -->
+    <div class="modal fade text-dark" id="clientPaymentModal" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 15px;">
+                <div class="modal-header border-0 bg-primary text-white p-4" style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>Paiement de la Commande</h5>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <span class="text-muted small">Montant à payer</span>
+                        <h2 class="fw-bold text-primary mt-1" id="clientPayAmount">0 FCFA</h2>
+                        <span class="badge bg-light text-dark border p-2" id="clientPayOrderId">Commande #0</span>
+                    </div>
+                    
+                    <form id="clientPaymentForm">
+                        <input type="hidden" id="clientPayOrderIdInput">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Méthode de Paiement</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="clientPayMethod" id="payOrange" value="ORANGE_MONEY" checked>
+                                    <label class="btn btn-outline-warning w-100 py-3 rounded d-flex flex-column align-items-center gap-1" for="payOrange">
+                                        <i class="bi bi-phone-fill fs-4"></i>
+                                        <span class="small fw-bold">Orange Money</span>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="clientPayMethod" id="payMtn" value="MTN_MONEY">
+                                    <label class="btn btn-outline-warning w-100 py-3 rounded d-flex flex-column align-items-center gap-1" for="payMtn">
+                                        <i class="bi bi-phone-fill fs-4"></i>
+                                        <span class="small fw-bold">MTN Money</span>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="clientPayMethod" id="payWave" value="WAVE">
+                                    <label class="btn btn-outline-info w-100 py-3 rounded d-flex flex-column align-items-center gap-1" for="payWave">
+                                        <i class="bi bi-phone-fill fs-4"></i>
+                                        <span class="small fw-bold">Wave</span>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="clientPayMethod" id="payCard" value="CARD">
+                                    <label class="btn btn-outline-primary w-100 py-3 rounded d-flex flex-column align-items-center gap-1" for="payCard">
+                                        <i class="bi bi-credit-card-fill fs-4"></i>
+                                        <span class="small fw-bold">Carte Bancaire</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="clientPhoneInput" class="form-label small fw-bold">Numéro de téléphone / Compte</label>
+                            <input type="text" class="form-control" id="clientPhoneInput" placeholder="Ex: 77 123 45 67" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold mt-2">
+                            Confirmer & Payer <i class="bi bi-check-circle-fill ms-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Client-side Panier JavaScript -->
     <script th:inline="javascript">
         let cart = [];
@@ -448,15 +510,78 @@
                 },
                 body: JSON.stringify(orderPayload)
             })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || "Erreur lors de la commande"); });
+                }
+                return res.json();
+            })
             .then(order => {
-                alert(`Votre commande #${order.id} a été enregistrée ! Vous allez être notifié dès qu'elle sera prête.`);
-                cart = [];
-                updateCartUI();
-                document.getElementById('checkoutForm').reset();
-                toggleOrderFields();
+                if (orderType === 'TAKE_AWAY' || orderType === 'DELIVERY') {
+                    // Show payment modal
+                    document.getElementById('clientPayAmount').textContent = order.totalAmount.toLocaleString() + ' FCFA';
+                    document.getElementById('clientPayOrderId').textContent = 'Commande #' + order.id;
+                    document.getElementById('clientPayOrderIdInput').value = order.id;
+                    document.getElementById('clientPhoneInput').value = order.clientPhone || '';
+                    
+                    const paymentModal = new bootstrap.Modal(document.getElementById('clientPaymentModal'));
+                    paymentModal.show();
+                    
+                    // Reset cart
+                    cart = [];
+                    updateCartUI();
+                    document.getElementById('checkoutForm').reset();
+                    toggleOrderFields();
+                } else {
+                    alert(`Votre commande #${order.id} a été enregistrée ! Vous pouvez payer sur place au moment du service.`);
+                    cart = [];
+                    updateCartUI();
+                    document.getElementById('checkoutForm').reset();
+                    toggleOrderFields();
+                }
             })
             .catch(err => {
                 alert("Erreur: " + err.message);
+            });
+        });
+
+        document.getElementById('clientPaymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('clientPayOrderIdInput').value;
+            const payMethod = document.querySelector('input[name="clientPayMethod"]:checked').value;
+            const phone = document.getElementById('clientPhoneInput').value;
+            const totalText = document.getElementById('clientPayAmount').textContent;
+            const amount = parseFloat(totalText.replace(/[^0-9.]/g, ''));
+            
+            const paymentPayload = {
+                orderId: parseInt(orderId),
+                amount: amount,
+                paymentMethod: payMethod,
+                transactionReference: 'TXN-CLIENT-' + Math.random().toString(36).substring(2, 9).toUpperCase()
+            };
+            
+            fetch(`/api/restaurant/${restaurantId}/payments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentPayload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("Erreur lors de la validation du paiement");
+                }
+                return res.json();
+            })
+            .then(payment => {
+                alert(`Paiement de ${amount.toLocaleString()} FCFA validé avec succès pour la commande #${orderId} ! La cuisine commence la préparation.`);
+                const modalEl = document.getElementById('clientPaymentModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            })
+            .catch(err => {
+                alert("Erreur de paiement: " + err.message);
             });
         });
     </script>

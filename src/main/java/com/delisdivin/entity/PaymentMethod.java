@@ -6,5 +6,6 @@ public enum PaymentMethod {
     MTN_MONEY,
     WAVE,
     FREE_MONEY,
-    CARD
+    CARD,
+    BANK_TRANSFER
 }

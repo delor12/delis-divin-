@@ -29,4 +29,10 @@ public class ProductCategory extends AbstractAuditable {
 
     @Column(name = "display_order")
     private Integer displayOrder = 0;
+
+    @Column(name = "supplier_name")
+    private String supplierName;
+
+    @Column(name = "supplier_contact")
+    private String supplierContact;
 }

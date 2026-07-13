@@ -12,7 +12,11 @@ public interface OrderService {
     OrderDTO getOrderById(Long id);
     List<OrderDTO> getOrdersByRestaurant(Long restaurantId);
     List<OrderDTO> getActiveOrdersByRestaurant(Long restaurantId);
+    List<OrderDTO> getCookedOrdersToday(Long restaurantId);
     List<OrderDTO> getOrdersByWaiter(Long waiterId, OrderStatus status);
     List<OrderDTO> getOrdersByDeliveryPerson(Long deliveryPersonId);
     long countOrdersByStatus(Long restaurantId, OrderStatus status);
+    List<OrderDTO> getAvailableDeliveryOrders(Long deliveryPersonId);
+    OrderDTO acceptDeliveryOrder(Long orderId, Long deliveryPersonId);
+    void declineDeliveryOrder(Long orderId, Long deliveryPersonId);
 }

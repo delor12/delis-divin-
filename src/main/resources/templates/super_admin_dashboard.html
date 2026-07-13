@@ -413,6 +413,16 @@
                 errorDiv.classList.remove('d-none');
             });
         });
+
+        // Active class helper for navigation links
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (this.getAttribute('href') !== '/login') {
+                    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
     </script>
 
     <!-- Add Restaurant Modal -->
@@ -541,6 +551,28 @@
                 </div>
             </div>
         </div>
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav d-md-none">
+        <a href="#" class="sidebar-link active">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#cities" class="sidebar-link">
+            <i class="bi bi-globe"></i>
+            <span>Villes</span>
+        </a>
+        <a href="#restaurants" class="sidebar-link">
+            <i class="bi bi-shop"></i>
+            <span>Resto</span>
+        </a>
+        <a href="#deliverers" class="sidebar-link">
+            <i class="bi bi-bicycle"></i>
+            <span>Livreurs</span>
+        </a>
+        <a href="#backups" class="sidebar-link">
+            <i class="bi bi-database-check"></i>
+            <span>Sauvegarde</span>
+        </a>
     </div>
 </body>
 </html>

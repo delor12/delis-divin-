@@ -75,6 +75,9 @@ public class AppMapper {
             dto.setRestaurantName(user.getRestaurant().getName());
         }
         dto.setActive(user.isActive());
+        dto.setLatitude(user.getLatitude());
+        dto.setLongitude(user.getLongitude());
+        dto.setDeclinedOrderIds(user.getDeclinedOrderIds());
         return dto;
     }
 
@@ -90,6 +93,8 @@ public class AppMapper {
         dto.setDescription(category.getDescription());
         dto.setActive(category.isActive());
         dto.setDisplayOrder(category.getDisplayOrder());
+        dto.setSupplierName(category.getSupplierName());
+        dto.setSupplierContact(category.getSupplierContact());
         return dto;
     }
 
@@ -102,6 +107,8 @@ public class AppMapper {
         category.setDescription(dto.getDescription());
         category.setActive(dto.isActive());
         category.setDisplayOrder(dto.getDisplayOrder());
+        category.setSupplierName(dto.getSupplierName());
+        category.setSupplierContact(dto.getSupplierContact());
         return category;
     }
 
@@ -221,6 +228,7 @@ public class AppMapper {
         } else {
             dto.setOrderItems(Collections.emptyList());
         }
+        dto.setPaid(order.isPaid());
         dto.setCreatedAt(order.getCreatedAt());
         return dto;
     }

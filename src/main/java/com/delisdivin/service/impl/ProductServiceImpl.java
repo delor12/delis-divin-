@@ -49,6 +49,8 @@ public class ProductServiceImpl implements ProductService {
         category.setDescription(dto.getDescription());
         category.setActive(dto.isActive());
         category.setDisplayOrder(dto.getDisplayOrder());
+        category.setSupplierName(dto.getSupplierName());
+        category.setSupplierContact(dto.getSupplierContact());
 
         ProductCategory updated = categoryRepository.save(category);
         return mapper.toDto(updated);

@@ -42,4 +42,13 @@ public class AppUser extends AbstractAuditable {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "declined_order_ids", length = 1000)
+    private String declinedOrderIds = "";
 }
