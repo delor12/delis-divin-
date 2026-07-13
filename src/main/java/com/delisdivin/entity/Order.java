@@ -52,6 +52,9 @@ public class Order extends AbstractAuditable {
     @JoinColumn(name = "delivery_person_id")
     private AppUser deliveryPerson; // Nullable (only for delivery orders)
 
+    @Column(nullable = false)
+    private boolean paid = false;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 

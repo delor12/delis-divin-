@@ -63,9 +63,13 @@
                     <h5 class="fw-bold mb-4 text-warning"><i class="bi bi-hourglass me-2"></i>Nouvelles Commandes</h5>
                     <div id="pendingColumn">
                         <!-- Th:each fallback for server-rendered page -->
-                        <div class="order-card" th:each="ord : ${orders}" th:if="${ord.status.name() == 'PENDING'}" th:id="'order-' + ${ord.id}">
+                        <div class="order-card" th:each="ord : ${orders}" th:if="${ord.status.name() == 'PENDING' && ord.paid}" th:id="'order-' + ${ord.id}">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="fw-bold mb-0 text-white" th:text="'Commande #' + ${ord.id}"></h6>
+                                <h6 class="fw-bold mb-0 text-white">
+                                    <span th:text="'Commande #' + ${ord.id}"></span>
+                                    <span th:if="${ord.paid}" class="badge bg-success-subtle text-success border border-success ms-1">Payé</span>
+                                    <span th:if="${!ord.paid}" class="badge bg-danger-subtle text-danger border border-danger ms-1">Non payé</span>
+                                </h6>
                                 <span class="badge bg-warning" th:text="${ord.type}">IN_REST</span>
                             </div>
                             <p class="small text-dark-muted mb-2">
@@ -93,9 +97,13 @@
                 <div class="kanban-column">
                     <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-fire me-2"></i>En Préparation</h5>
                     <div id="preparingColumn">
-                        <div class="order-card" th:style="'border-left-color: #8E2DE2;'" th:each="ord : ${orders}" th:if="${ord.status.name() == 'PREPARING'}" th:id="'order-' + ${ord.id}">
+                        <div class="order-card" th:style="'border-left-color: #8E2DE2;'" th:each="ord : ${orders}" th:if="${ord.status.name() == 'PREPARING' && ord.paid}" th:id="'order-' + ${ord.id}">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="fw-bold mb-0 text-white" th:text="'Commande #' + ${ord.id}"></h6>
+                                <h6 class="fw-bold mb-0 text-white">
+                                    <span th:text="'Commande #' + ${ord.id}"></span>
+                                    <span th:if="${ord.paid}" class="badge bg-success-subtle text-success border border-success ms-1">Payé</span>
+                                    <span th:if="${!ord.paid}" class="badge bg-danger-subtle text-danger border border-danger ms-1">Non payé</span>
+                                </h6>
                                 <span class="badge bg-primary" th:text="${ord.type}">IN_REST</span>
                             </div>
                             <p class="small text-dark-muted mb-2">
@@ -121,16 +129,23 @@
             <!-- Column 3: READY -->
             <div class="col-md-4">
                 <div class="kanban-column">
-                    <h5 class="fw-bold mb-4 text-success"><i class="bi bi-check-circle me-2"></i>Prêtes / À Servir</h5>
+                    <h5 class="fw-bold mb-4 text-success"><i class="bi bi-check-circle me-2"></i>Prêt / Servie</h5>
                     <div id="readyColumn">
-                        <div class="order-card" th:style="'border-left-color: #28a745;'" th:each="ord : ${orders}" th:if="${ord.status.name() == 'READY'}" th:id="'order-' + ${ord.id}">
+                        <div class="order-card" th:style="'border-left-color: #28a745;'" th:each="ord : ${orders}" th:if="${(ord.status.name() == 'READY' || ord.status.name() == 'SERVED') && ord.paid}" th:id="'order-' + ${ord.id}">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="fw-bold mb-0 text-white" th:text="'Commande #' + ${ord.id}"></h6>
+                                <h6 class="fw-bold mb-0 text-white">
+                                    <span th:text="'Commande #' + ${ord.id}"></span>
+                                    <span th:if="${ord.paid}" class="badge bg-success-subtle text-success border border-success ms-1">Payé</span>
+                                    <span th:if="${!ord.paid}" class="badge bg-danger-subtle text-danger border border-danger ms-1">Non payé</span>
+                                </h6>
                                 <span class="badge bg-success" th:text="${ord.type}">IN_REST</span>
                             </div>
                             <p class="small text-dark-muted mb-2">
                                 <span th:if="${ord.tableNumber != null}" th:text="'Table N° ' + ${ord.tableNumber}"></span>
-                                <span th:if="${ord.tableNumber == null}">À Emporter/Livraison</span>
+                                <span th:if="${ord.tableNumber == null && ord.type.name() == 'TAKE_AWAY'}">À Emporter</span>
+                                <span th:if="${ord.tableNumber == null && ord.type.name() == 'DELIVERY'}" class="text-danger">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Livraison: <strong th:text="${ord.clientAddress}">Adresse</strong>
+                                </span>
                             </p>
                             
                             <ul class="list-unstyled border-top border-secondary pt-2 mb-3">
@@ -142,12 +157,59 @@
                                 </li>
                             </ul>
                             
+ feature/delivery-and-cashier-dashboards
+                            <button th:if="${ord.status.name() == 'READY'}" class="btn btn-outline-light btn-sm w-100 rounded-pill" th:data-id="${ord.id}" onclick="updateStatus(this.getAttribute('data-id'), 'SERVED')">Servie <i class="bi bi-egg me-1"></i></button>
+                            <span th:if="${ord.status.name() == 'SERVED'}" class="badge bg-secondary w-100 py-2"><i class="bi bi-check-all me-1"></i>Servie par le serveur</span>
+
                             <button class="btn btn-outline-light btn-sm w-100 rounded-pill" th:data-id="${ord.id}" onclick="updateStatus(this.getAttribute('data-id'), 'SERVED')">Servie <i class="bi bi-egg me-1"></i></button>
+ main
                         </div>
                     </div>
                 </div>
             </div>
 
+        </div> <!-- End of Kanban Row -->
+        
+        <!-- Cooked Today Section -->
+        <div class="row g-4 mt-4 mb-5">
+            <div class="col-12">
+                <div class="card bg-dark text-white border-0 p-4" style="border-radius: 12px; background-color: #1e1e24 !important;">
+                    <h5 class="fw-bold mb-4 text-success"><i class="bi bi-journal-check me-2"></i>Historique des Plats Cuisinés Aujourd'hui</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th>Heure</th>
+                                    <th>Commande</th>
+                                    <th>Client / Table</th>
+                                    <th>Plats préparés</th>
+                                    <th>Statut final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cookedTodayTableBody">
+                                <!-- Server-rendered on page load, updated dynamically -->
+                                <tr th:each="ord : ${cookedToday}" th:id="'cooked-row-' + ${ord.id}">
+                                    <td th:text="${#temporals.format(ord.createdAt, 'HH:mm')}">12:30</td>
+                                    <td class="fw-bold text-success" th:text="'#' + ${ord.id}">#1</td>
+                                    <td>
+                                        <span th:if="${ord.tableNumber != null}" th:text="'Table N° ' + ${ord.tableNumber}">Table 1</span>
+                                        <span th:if="${ord.tableNumber == null}" th:text="${ord.clientName}">Client</span>
+                                    </td>
+                                    <td>
+                                        <span th:each="it : ${ord.orderItems}" class="badge bg-secondary me-1" th:text="${it.quantity} + 'x ' + ${it.productName}">1x Dish</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success" th:text="${ord.status}">COMPLETED</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(cookedToday)}">
+                                    <td colspan="5" class="text-center text-muted py-4" id="cookedNoOrdersPlaceholder">Aucun plat cuisiné aujourd'hui.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -169,10 +231,17 @@
                 }
             }).then(response => {
                 if (response.ok) {
-                    // Update UI immediately (it will also receive WS updates)
-                    const el = document.getElementById('order-' + orderId);
-                    if (el) el.remove();
+                    return response.json();
+                } else {
+                    return response.json().then(err => {
+                        throw new Error(err.message || "Erreur lors du changement de statut.");
+                    });
                 }
+            }).then(order => {
+                // Instantly update the UI locally
+                handleIncomingOrder(order);
+            }).catch(err => {
+                alert(err.message || "Erreur lors du changement de statut.");
             });
         }
 
@@ -202,8 +271,43 @@
             const oldCard = document.getElementById('order-' + order.id);
             if (oldCard) oldCard.remove();
 
-            // Only add if active status (PENDING, PREPARING, READY)
-            if (order.status !== 'PENDING' && order.status !== 'PREPARING' && order.status !== 'READY') {
+            // Unpaid orders are not visible in the kitchen at all
+            if (!order.paid) {
+                return;
+            }
+
+            // Update cooked today table in real-time
+            if (order.status === 'READY' || order.status === 'SERVED' || order.status === 'COMPLETED') {
+                const existingRow = document.getElementById('cooked-row-' + order.id);
+                const timeStr = new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const clientInfo = order.tableNumber ? `Table N° ${order.tableNumber}` : (order.clientName || 'Client');
+                const itemsBadgeHtml = order.orderItems.map(it => `<span class="badge bg-secondary me-1">${it.quantity}x ${it.productName}</span>`).join('');
+                
+                const rowHtml = `
+                    <tr id="cooked-row-${order.id}">
+                        <td>${timeStr}</td>
+                        <td class="fw-bold text-success">#${order.id}</td>
+                        <td>${clientInfo}</td>
+                        <td>${itemsBadgeHtml}</td>
+                        <td><span class="badge bg-success">${order.status}</span></td>
+                    </tr>
+                `;
+                
+                const tbody = document.getElementById('cookedTodayTableBody');
+                if (tbody) {
+                    const placeholder = document.getElementById('cookedNoOrdersPlaceholder');
+                    if (placeholder) placeholder.parentElement.remove();
+                    
+                    if (existingRow) {
+                        existingRow.outerHTML = rowHtml;
+                    } else {
+                        tbody.insertAdjacentHTML('afterbegin', rowHtml);
+                    }
+                }
+            }
+
+            // Only add card to Kanban if active status (PENDING, PREPARING, READY, SERVED)
+            if (order.status !== 'PENDING' && order.status !== 'PREPARING' && order.status !== 'READY' && order.status !== 'SERVED') {
                 return;
             }
 
@@ -221,12 +325,20 @@
                 badgeClass = "bg-primary";
                 borderStyle = 'style="border-left-color: #8E2DE2;"';
                 btnHtml = `<button class="btn btn-success btn-sm w-100 rounded-pill" onclick="updateStatus(${order.id}, 'READY')">Prêt <i class="bi bi-check-lg ms-1"></i></button>`;
-            } else if (order.status === 'READY') {
+            } else if (order.status === 'READY' || order.status === 'SERVED') {
                 containerId = "readyColumn";
                 badgeClass = "bg-success";
                 borderStyle = 'style="border-left-color: #28a745;"';
-                btnHtml = `<button class="btn btn-outline-light btn-sm w-100 rounded-pill" onclick="updateStatus(${order.id}, 'SERVED')">Servie <i class="bi bi-egg me-1"></i></button>`;
+                if (order.status === 'READY') {
+                    btnHtml = `<button class="btn btn-outline-light btn-sm w-100 rounded-pill" onclick="updateStatus(${order.id}, 'SERVED')">Servie <i class="bi bi-egg me-1"></i></button>`;
+                } else {
+                    btnHtml = `<span class="badge bg-secondary w-100 py-2"><i class="bi bi-check-all me-1"></i>Servie par le serveur</span>`;
+                }
             }
+
+            const paymentBadge = order.paid ? 
+                `<span class="badge bg-success-subtle text-success border border-success ms-1">Payé</span>` : 
+                `<span class="badge bg-danger-subtle text-danger border border-danger ms-1">Non payé</span>`;
 
             const itemsHtml = order.orderItems.map(item => `
                 <li class="small text-white">
@@ -239,11 +351,12 @@
             const cardHtml = `
                 <div class="order-card animate-fade-in" id="order-${order.id}" ${borderStyle}>
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="fw-bold mb-0 text-white">Commande #${order.id}</h6>
+                        <h6 class="fw-bold mb-0 text-white">Commande #${order.id} ${paymentBadge}</h6>
                         <span class="badge ${badgeClass}">${order.type}</span>
                     </div>
                     <p class="small text-dark-muted mb-2">
-                        ${order.tableNumber ? `Table N° ${order.tableNumber}` : 'À Emporter/Livraison'}
+                        ${order.tableNumber ? `Table N° ${order.tableNumber}` : 
+                          (order.type === 'DELIVERY' ? `<span class="text-danger"><i class="bi bi-geo-alt-fill me-1"></i>Livraison: <strong>${order.clientAddress || ''}</strong></span>` : 'À Emporter')}
                     </p>
                     <ul class="list-unstyled border-top border-secondary pt-2 mb-3">
                         ${itemsHtml}

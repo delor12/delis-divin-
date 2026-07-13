@@ -14,6 +14,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -105,6 +108,19 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + id));
 
         OrderStatus oldStatus = order.getStatus();
+
+        // Enforce payment before validating/preparing the order
+        if (oldStatus == OrderStatus.PENDING && status != OrderStatus.CANCELLED && status != OrderStatus.PENDING) {
+            if (!order.isPaid()) {
+                throw new BadRequestException("La commande ne peut être validée qu'après le paiement.");
+            }
+        }
+
+        // If the order is paid and is now being served, automatically mark it as COMPLETED
+        if (status == OrderStatus.SERVED && order.isPaid()) {
+            status = OrderStatus.COMPLETED;
+        }
+
         order.setStatus(status);
 
         // If completed or cancelled, release dining table if applicable
@@ -220,6 +236,162 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public long countOrdersByStatus(Long restaurantId, OrderStatus status) {
         return orderRepository.countByRestaurantIdAndStatus(restaurantId, status);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderDTO> getCookedOrdersToday(Long restaurantId) {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+        List<OrderStatus> cookedStatuses = Arrays.asList(OrderStatus.READY, OrderStatus.SERVED, OrderStatus.COMPLETED);
+        
+        return orderRepository.findByRestaurantIdAndCreatedAtBetween(restaurantId, start, end).stream()
+                .filter(o -> cookedStatuses.contains(o.getStatus()))
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderDTO> getAvailableDeliveryOrders(Long deliveryPersonId) {
+        AppUser currentDriver = userRepository.findById(deliveryPersonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found with ID: " + deliveryPersonId));
+
+        // Get list of declined order IDs for this driver
+        List<Long> declinedIds = Arrays.stream(
+                (currentDriver.getDeclinedOrderIds() == null ? "" : currentDriver.getDeclinedOrderIds()).split(",")
+        )
+        .filter(s -> !s.trim().isEmpty())
+        .map(Long::parseLong)
+        .collect(Collectors.toList());
+
+        // Find all orders of type DELIVERY and status READY with no assigned delivery person
+        List<Order> readyDeliveries = orderRepository.findByStatus(OrderStatus.READY).stream()
+                .filter(o -> o.getType() == OrderType.DELIVERY && o.getDeliveryPerson() == null)
+                .filter(o -> !declinedIds.contains(o.getId()))
+                .collect(Collectors.toList());
+
+        // Find all active drivers with coordinates
+        List<AppUser> activeDrivers = userRepository.findByRole(Role.DELIVERY).stream()
+                .filter(AppUser::isActive)
+                .filter(u -> u.getLatitude() != null && u.getLongitude() != null)
+                .collect(Collectors.toList());
+
+        return readyDeliveries.stream().map(order -> {
+            OrderDTO dto = mapper.toDto(order);
+
+            // Find closest driver among active drivers who haven't declined this order
+            AppUser closestDriver = null;
+            double minDistance = Double.MAX_VALUE;
+
+            for (AppUser driver : activeDrivers) {
+                // Check if this driver has declined this order
+                List<Long> driverDeclinedIds = Arrays.stream(
+                        (driver.getDeclinedOrderIds() == null ? "" : driver.getDeclinedOrderIds()).split(",")
+                )
+                .filter(s -> !s.trim().isEmpty())
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+                if (driverDeclinedIds.contains(order.getId())) {
+                    continue; // Skip driver if they declined
+                }
+
+                Restaurant r = order.getRestaurant();
+                if (r != null && r.getLatitude() != null && r.getLongitude() != null) {
+                    double dist = calculateDistanceInKm(
+                            driver.getLatitude(), driver.getLongitude(),
+                            r.getLatitude(), r.getLongitude()
+                    );
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestDriver = driver;
+                    }
+                }
+            }
+
+            if (closestDriver != null) {
+                dto.setProposedDeliveryPersonId(closestDriver.getId());
+                dto.setProposedDeliveryPersonName(closestDriver.getFirstName() + " " + closestDriver.getLastName());
+            }
+
+            // Also calculate distance from the current driver requesting the list
+            Restaurant r = order.getRestaurant();
+            if (r != null && r.getLatitude() != null && r.getLongitude() != null &&
+                currentDriver.getLatitude() != null && currentDriver.getLongitude() != null) {
+                double dist = calculateDistanceInKm(
+                        currentDriver.getLatitude(), currentDriver.getLongitude(),
+                        r.getLatitude(), r.getLongitude()
+                );
+                dto.setDistanceToRestaurant(dist);
+            } else {
+                dto.setDistanceToRestaurant(null);
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    private double calculateDistanceInKm(double lat1, double lon1, double lat2, double lon2) {
+        double lon1Rad = Math.toRadians(lon1);
+        double lon2Rad = Math.toRadians(lon2);
+        double lat1Rad = Math.toRadians(lat1);
+        double lat2Rad = Math.toRadians(lat2);
+
+        double dlon = lon2Rad - lon1Rad;
+        double dlat = lat2Rad - lat1Rad;
+        double a = Math.pow(Math.sin(dlat / 2), 2)
+                 + Math.cos(lat1Rad) * Math.cos(lat2Rad)
+                 * Math.pow(Math.sin(dlon / 2), 2);
+
+        double c = 2 * Math.asin(Math.sqrt(a));
+        double r = 6371; // Earth radius in km
+        return c * r;
+    }
+
+    @Override
+    @Transactional
+    public OrderDTO acceptDeliveryOrder(Long orderId, Long deliveryPersonId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderId));
+
+        if (order.getDeliveryPerson() != null) {
+            throw new BadRequestException("Cette commande a déjà été acceptée par un autre livreur.");
+        }
+
+        AppUser driver = userRepository.findById(deliveryPersonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found with ID: " + deliveryPersonId));
+
+        order.setDeliveryPerson(driver);
+        Order saved = orderRepository.save(order);
+
+        OrderDTO responseDto = mapper.toDto(saved);
+        sendWebSocketUpdate(order.getRestaurant().getId(), "DELIVERY_ACCEPTED", responseDto);
+        return responseDto;
+    }
+
+    @Override
+    @Transactional
+    public void declineDeliveryOrder(Long orderId, Long deliveryPersonId) {
+        AppUser driver = userRepository.findById(deliveryPersonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found with ID: " + deliveryPersonId));
+
+        String declined = driver.getDeclinedOrderIds();
+        if (declined == null || declined.trim().isEmpty()) {
+            declined = String.valueOf(orderId);
+        } else {
+            List<String> list = Arrays.asList(declined.split(","));
+            if (!list.contains(String.valueOf(orderId))) {
+                declined = declined + "," + orderId;
+            }
+        }
+        driver.setDeclinedOrderIds(declined);
+        userRepository.save(driver);
+
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order != null) {
+            sendWebSocketUpdate(order.getRestaurant().getId(), "DELIVERY_DECLINED", mapper.toDto(order));
+        }
     }
 
     private void sendWebSocketUpdate(Long restaurantId, String type, OrderDTO order) {

@@ -3,6 +3,7 @@ package com.delisdivin.controller;
 import com.delisdivin.dto.*;
 import com.delisdivin.entity.OrderStatus;
 import com.delisdivin.entity.TableStatus;
+import com.delisdivin.entity.Role;
 import com.delisdivin.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,11 @@ import java.time.LocalDateTime;
 import com.delisdivin.entity.ChatMessage;
 import com.delisdivin.repository.ChatMessageRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+feature/delivery-and-cashier-dashboards
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.delisdivin.security.UserDetailsImpl;
+
+main
 
 @RestController
 @RequestMapping("/api")
@@ -32,6 +38,10 @@ public class ApiController {
     private final OrderService orderService;
     private final PaymentService paymentService;
     private final ReportService reportService;
+feature/delivery-and-cashier-dashboards
+    private final UserService userService;
+
+main
     private final ChatMessageRepository chatMessageRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -110,6 +120,13 @@ public class ApiController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/restaurant/product/{productId}/stock")
+    public ResponseEntity<ProductDTO> updateProductStock(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity) {
+        return ResponseEntity.ok(productService.updateStock(productId, quantity));
+    }
+
 
     // --- Restaurant specific endpoints ---
 
@@ -133,6 +150,33 @@ public class ApiController {
         return ResponseEntity.ok(tableService.updateTableStatus(tableId, status));
     }
 
+    @PostMapping("/restaurant/{restaurantId}/tables")
+    public ResponseEntity<DiningTableDTO> createTable(
+            @PathVariable Long restaurantId,
+            @Valid @RequestBody DiningTableDTO tableDTO) {
+        tableDTO.setRestaurantId(restaurantId);
+        return ResponseEntity.ok(tableService.createTable(tableDTO));
+    }
+
+    @DeleteMapping("/restaurant/table/{tableId}")
+    public ResponseEntity<Void> deleteTable(@PathVariable Long tableId) {
+        tableService.deleteTable(tableId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/restaurant/{restaurantId}/orders")
+    public ResponseEntity<List<OrderDTO>> getRestaurantOrders(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(orderService.getOrdersByRestaurant(restaurantId));
+    }
+
+    @PostMapping("/restaurant/{restaurantId}/orders")
+    public ResponseEntity<OrderDTO> createRestaurantOrder(
+            @PathVariable Long restaurantId,
+            @Valid @RequestBody OrderDTO orderDTO) {
+        orderDTO.setRestaurantId(restaurantId);
+        return ResponseEntity.ok(orderService.createOrder(orderDTO));
+    }
+
     // --- Orders & Checkout ---
 
     @PostMapping("/public/restaurant/{restaurantId}/orders")
@@ -153,8 +197,21 @@ public class ApiController {
     @PutMapping("/restaurant/order/{orderId}/waiter")
     public ResponseEntity<OrderDTO> assignWaiter(
             @PathVariable Long orderId,
-            @RequestParam Long waiterId) {
+             @RequestParam Long waiterId) {
         return ResponseEntity.ok(orderService.assignWaiter(orderId, waiterId));
+    }
+
+    @GetMapping("/restaurant/{restaurantId}/users")
+    public ResponseEntity<List<UserDTO>> getRestaurantUsers(
+            @PathVariable Long restaurantId,
+            @RequestParam(required = false) Role role) {
+        List<UserDTO> users = userService.getUsersByRestaurant(restaurantId);
+        if (role != null) {
+            users = users.stream()
+                    .filter(u -> u.getRole() == role)
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        return ResponseEntity.ok(users);
     }
 
     @PutMapping("/restaurant/order/{orderId}/delivery-person")
@@ -162,6 +219,33 @@ public class ApiController {
             @PathVariable Long orderId,
             @RequestParam Long deliveryPersonId) {
         return ResponseEntity.ok(orderService.assignDeliveryPerson(orderId, deliveryPersonId));
+    }
+
+    @PutMapping("/delivery/location")
+    public ResponseEntity<UserDTO> updateDeliveryLocation(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude) {
+        UserDTO userDTO = userService.getUserById(userDetails.getId());
+        userDTO.setLatitude(latitude);
+        userDTO.setLongitude(longitude);
+        UserDTO updated = userService.updateUser(userDetails.getId(), userDTO);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/delivery/order/{orderId}/accept")
+    public ResponseEntity<OrderDTO> acceptDeliveryOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(orderService.acceptDeliveryOrder(orderId, userDetails.getId()));
+    }
+
+    @PutMapping("/delivery/order/{orderId}/decline")
+    public ResponseEntity<Void> declineDeliveryOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        orderService.declineDeliveryOrder(orderId, userDetails.getId());
+        return ResponseEntity.ok().build();
     }
 
     // --- Payments ---

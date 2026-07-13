@@ -129,6 +129,9 @@ public class UserServiceImpl implements UserService {
         user.setLastName(dto.getLastName());
         user.setPhone(dto.getPhone());
         user.setActive(dto.isActive());
+        user.setLatitude(dto.getLatitude());
+        user.setLongitude(dto.getLongitude());
+        user.setDeclinedOrderIds(dto.getDeclinedOrderIds());
         
         if (dto.getRestaurantId() != null) {
             Restaurant restaurant = restaurantRepository.findById(dto.getRestaurantId())

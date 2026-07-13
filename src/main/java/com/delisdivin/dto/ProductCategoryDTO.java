@@ -10,4 +10,6 @@ public class ProductCategoryDTO {
     private String description;
     private boolean active;
     private Integer displayOrder;
+    private String supplierName;
+    private String supplierContact;
 }

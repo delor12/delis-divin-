@@ -144,9 +144,12 @@ public class DataInitializer implements CommandLineRunner {
         superAdmin.setActive(true);
         userRepository.save(superAdmin);
 
+        feature/delivery-and-cashier-dashboards
+
         fix-seed-divine-mere-association
 
         feature-seed-divine-mere-accounts
+        main
         main
         // Gérant (Admin) - Divine Mère
         AppUser gerantDM = new AppUser();
@@ -157,11 +160,15 @@ public class DataInitializer implements CommandLineRunner {
         gerantDM.setLastName("Ndiaye");
         gerantDM.setPhone("+221 77 987 65 43");
         gerantDM.setRole(Role.RESTAURANT_ADMIN);
+        feature/delivery-and-cashier-dashboards
+        gerantDM.setRestaurant(epieurien);
+
         fix-seed-divine-mere-association
         gerantDM.setRestaurant(epieurien);
 
         gerantDM.setRestaurant(bistrot);
         main
+         main
         gerantDM.setActive(true);
         userRepository.save(gerantDM);
 
@@ -174,10 +181,71 @@ public class DataInitializer implements CommandLineRunner {
         serveurDM.setLastName("Sow");
         serveurDM.setPhone("+221 77 654 32 10");
         serveurDM.setRole(Role.SERVER);
+ feature/delivery-and-cashier-dashboards
+
         fix-seed-divine-mere-association
+ main
         serveurDM.setRestaurant(epieurien);
         serveurDM.setActive(true);
         userRepository.save(serveurDM);
+
+ feature/delivery-and-cashier-dashboards
+        // Chef - Divine Mère
+        AppUser chefDM = new AppUser();
+        chefDM.setUsername("cusiniere_divinemere");
+        chefDM.setEmail("cusiniere@divinemere.com");
+        chefDM.setPassword(defaultPassword);
+        chefDM.setFirstName("Awa");
+        chefDM.setLastName("Diagne");
+        chefDM.setPhone("+221 77 111 22 33");
+        chefDM.setRole(Role.CHEF);
+        chefDM.setRestaurant(epieurien);
+        chefDM.setActive(true);
+        userRepository.save(chefDM);
+
+        // Caissier - Divine Mère
+        AppUser caissierDM = new AppUser();
+        caissierDM.setUsername("caissier_divinemere");
+        caissierDM.setEmail("caissier@divinemere.com");
+        caissierDM.setPassword(defaultPassword);
+        caissierDM.setFirstName("Ousmane");
+        caissierDM.setLastName("Sy");
+        caissierDM.setPhone("+221 77 444 55 66");
+        caissierDM.setRole(Role.CASHIER);
+        caissierDM.setRestaurant(epieurien);
+        caissierDM.setActive(true);
+        userRepository.save(caissierDM);
+
+        // Livreur - Divine Mère
+        AppUser livreurDM = new AppUser();
+        livreurDM.setUsername("livreur_divinemere");
+        livreurDM.setEmail("livreur@divinemere.com");
+        livreurDM.setPassword(defaultPassword);
+        livreurDM.setFirstName("Cheikh");
+        livreurDM.setLastName("Diallo");
+        livreurDM.setPhone("+221 77 777 88 99");
+        livreurDM.setRole(Role.DELIVERY);
+        livreurDM.setRestaurant(epieurien);
+        livreurDM.setActive(true);
+        livreurDM.setLatitude(4.0520);
+        livreurDM.setLongitude(9.7685);
+        userRepository.save(livreurDM);
+
+        // Deuxième Livreur - Divine Mère (plus éloigné pour les tests de proximité)
+        AppUser livreur2DM = new AppUser();
+        livreur2DM.setUsername("livreur2_divinemere");
+        livreur2DM.setEmail("livreur2@divinemere.com");
+        livreur2DM.setPassword(defaultPassword);
+        livreur2DM.setFirstName("Mamadou");
+        livreur2DM.setLastName("Sow");
+        livreur2DM.setPhone("+221 77 222 33 44");
+        livreur2DM.setRole(Role.DELIVERY);
+        livreur2DM.setRestaurant(epieurien);
+        livreur2DM.setActive(true);
+        livreur2DM.setLatitude(4.0650);
+        livreur2DM.setLongitude(9.7750);
+        userRepository.save(livreur2DM);
+
 
         serveurDM.setRestaurant(bistrot);
         serveurDM.setActive(true);
@@ -186,11 +254,14 @@ public class DataInitializer implements CommandLineRunner {
         main
         main
         // 5. Seed Product Categories
+ main
         ProductCategory ent = new ProductCategory();
         ent.setName("Entrées");
         ent.setDescription("Mises en bouche légères et salades.");
         ent.setRestaurant(bistrot);
         ent.setDisplayOrder(1);
+        ent.setSupplierName("Maraîcher du Centre");
+        ent.setSupplierContact("+221 77 123 4567");
         categoryRepository.save(ent);
 
         ProductCategory plat = new ProductCategory();
@@ -198,6 +269,8 @@ public class DataInitializer implements CommandLineRunner {
         plat.setDescription("Thiéboudienne, Yassa, Mafé et autres spécialités.");
         plat.setRestaurant(bistrot);
         plat.setDisplayOrder(2);
+        plat.setSupplierName("Boucherie Dakaroise");
+        plat.setSupplierContact("+221 77 987 6543");
         categoryRepository.save(plat);
 
         ProductCategory drink = new ProductCategory();
@@ -205,6 +278,8 @@ public class DataInitializer implements CommandLineRunner {
         drink.setDescription("Boissons fraîches locales et internationales.");
         drink.setRestaurant(bistrot);
         drink.setDisplayOrder(3);
+        drink.setSupplierName("SOBOA (Sénégal)");
+        drink.setSupplierContact("+221 33 839 1200");
         categoryRepository.save(drink);
 
         ProductCategory dessert = new ProductCategory();
@@ -212,6 +287,8 @@ public class DataInitializer implements CommandLineRunner {
         dessert.setDescription("Douceurs sucrées de fin de repas.");
         dessert.setRestaurant(bistrot);
         dessert.setDisplayOrder(4);
+        dessert.setSupplierName("Pâtisserie La Ruche");
+        dessert.setSupplierContact("+221 77 555 4321");
         categoryRepository.save(dessert);
 
         // 6. Seed Products
@@ -304,6 +381,8 @@ public class DataInitializer implements CommandLineRunner {
         rotisCat.setDescription("Délicieux rôtis préparés avec soin.");
         rotisCat.setRestaurant(epieurien);
         rotisCat.setDisplayOrder(1);
+        rotisCat.setSupplierName("Boucherie Divine");
+        rotisCat.setSupplierContact("+237 699 99 99 99");
         categoryRepository.save(rotisCat);
 
         ProductCategory platsCat = new ProductCategory();
@@ -311,6 +390,8 @@ public class DataInitializer implements CommandLineRunner {
         platsCat.setDescription("Spécialités de la maison.");
         platsCat.setRestaurant(epieurien);
         platsCat.setDisplayOrder(2);
+        platsCat.setSupplierName("Marché Central de Douala");
+        platsCat.setSupplierContact("+237 677 77 77 77");
         categoryRepository.save(platsCat);
 
         ProductCategory fruitsCat = new ProductCategory();
@@ -318,6 +399,8 @@ public class DataInitializer implements CommandLineRunner {
         fruitsCat.setDescription("Douceurs fruitées et desserts.");
         fruitsCat.setRestaurant(epieurien);
         fruitsCat.setDisplayOrder(3);
+        fruitsCat.setSupplierName("Verger du Noun");
+        fruitsCat.setSupplierContact("+237 655 55 55 55");
         categoryRepository.save(fruitsCat);
 
         // Products

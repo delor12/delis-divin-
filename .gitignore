@@ -1,0 +1,8 @@
+target/
+*.class
+.idea/
+*.log
+DELIS-DIVIN
+DELIS-DIVIN.pub
+backups/
+uploads/

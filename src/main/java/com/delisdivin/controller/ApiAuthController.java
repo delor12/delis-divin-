@@ -18,9 +18,17 @@ public class ApiAuthController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = userService.login(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest request,
+            jakarta.servlet.http.HttpServletResponse response) {
+        AuthResponse authResponse = userService.login(request);
+        
+        // Add JWT cookie in response headers for server-side page authorization
+        String cookieHeader = String.format("jwt=%s; Path=/; Max-Age=%d; SameSite=Lax; Secure", 
+                authResponse.getToken(), 24 * 60 * 60);
+        response.addHeader("Set-Cookie", cookieHeader);
+        
+        return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/register")

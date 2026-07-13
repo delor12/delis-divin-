@@ -15,4 +15,7 @@ public class UserDTO {
     private Long restaurantId;
     private String restaurantName;
     private boolean active;
+    private Double latitude;
+    private Double longitude;
+    private String declinedOrderIds;
 }

@@ -38,11 +38,22 @@ trap cleanup SIGINT SIGTERM
 (
     while true; do
         echo "[Localtunnel] Establishing connection..."
-        npx lt --port $PORT > /tmp/localtunnel_url.log 2>&1
+        npx lt --port $PORT --subdomain delisdivin > /tmp/localtunnel_url.log 2>&1
         echo "[Localtunnel] Connection lost. Reconnecting in 5s..."
+        sleep 5
+    done
+) &
+
+# 4. Run Pinggy.io in a loop (SSH-based)
+(
+    while true; do
+        echo "[Pinggy.io] Establishing connection..."
+        ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -R 80:localhost:$PORT pinggy.io 2>&1
+        echo "[Pinggy.io] Connection lost. Reconnecting in 5s..."
         sleep 5
     done
 ) &
 
 # Wait for all background jobs
 wait
+

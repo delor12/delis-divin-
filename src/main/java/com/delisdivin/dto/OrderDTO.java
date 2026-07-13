@@ -24,5 +24,9 @@ public class OrderDTO {
     private Long deliveryPersonId;
     private String deliveryPersonName;
     private List<OrderItemDTO> orderItems;
+    private boolean paid;
     private LocalDateTime createdAt;
+    private Double distanceToRestaurant;
+    private Long proposedDeliveryPersonId;
+    private String proposedDeliveryPersonName;
 }
