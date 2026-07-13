@@ -105,15 +105,15 @@ public class DataInitializer implements CommandLineRunner {
         Restaurant epieurien = new Restaurant();
         epieurien.setName("Divine Mère");
         epieurien.setDescription("Spécialités de rôtis maison, émincés succulents et cuisine traditionnelle à Douala.");
-        epieurien.setAddress("Rue Joss, Douala");
+        epieurien.setAddress("Ndopassi, à côté de l'école Étoile d'Or, Douala");
         epieurien.setCity(douala);
-        epieurien.setPhone("+237 233 45 78 88");
+        epieurien.setPhone("+237 689473811");
         epieurien.setEmail("divinemere@delisdivin.com");
         epieurien.setRating(4.8);
         epieurien.setPriceRange("Medium");
         epieurien.setAveragePrepTime(25);
-        epieurien.setLogoUrl("/images/menu DM.jpg");
-        epieurien.setBannerUrl("/images/carte de fideliter DM.jpg");
+        epieurien.setLogoUrl("/images/divine_logo.png");
+        epieurien.setBannerUrl("/images/menu_divine_mere.jpg");
         epieurien.setLatitude(4.0511);
         epieurien.setLongitude(9.7679);
         epieurien.setActive(true);
@@ -134,24 +134,24 @@ public class DataInitializer implements CommandLineRunner {
 
         // Super Admin
         AppUser superAdmin = new AppUser();
-        superAdmin.setUsername("superadmin");
-        superAdmin.setEmail("superadmin@delisdivin.com");
+        superAdmin.setUsername("tity_delor");
+        superAdmin.setEmail("tity.delor@delisdivin.com");
         superAdmin.setPassword(defaultPassword);
-        superAdmin.setFirstName("Amadou");
-        superAdmin.setLastName("Diop");
-        superAdmin.setPhone("+221 77 123 45 67");
+        superAdmin.setFirstName("Tity");
+        superAdmin.setLastName("Delor");
+        superAdmin.setPhone("+237 689473811");
         superAdmin.setRole(Role.SUPER_ADMIN);
         superAdmin.setActive(true);
         userRepository.save(superAdmin);
 
         // Gérant (Admin) - Divine Mère
         AppUser gerantDM = new AppUser();
-        gerantDM.setUsername("gerant_divinemere");
-        gerantDM.setEmail("gerant@divinemere.com");
+        gerantDM.setUsername("loutse_mbang");
+        gerantDM.setEmail("loutse.mbang@divinemere.com");
         gerantDM.setPassword(defaultPassword);
-        gerantDM.setFirstName("Fatou");
-        gerantDM.setLastName("Ndiaye");
-        gerantDM.setPhone("+221 77 987 65 43");
+        gerantDM.setFirstName("Loutse");
+        gerantDM.setLastName("Mbang");
+        gerantDM.setPhone("+237 689473811");
         gerantDM.setRole(Role.RESTAURANT_ADMIN);
         gerantDM.setRestaurant(epieurien);
         gerantDM.setActive(true);
@@ -159,24 +159,25 @@ public class DataInitializer implements CommandLineRunner {
 
         // Serveur (Waiter) - Divine Mère
         AppUser serveurDM = new AppUser();
-        serveurDM.setUsername("serveur_divinemere");
-        serveurDM.setEmail("serveur@divinemere.com");
+        serveurDM.setUsername("floriane_serveuse");
+        serveurDM.setEmail("floriane.serveuse@divinemere.com");
         serveurDM.setPassword(defaultPassword);
-        serveurDM.setFirstName("Moussa");
-        serveurDM.setLastName("Sow");
-        serveurDM.setPhone("+221 77 654 32 10");
+        serveurDM.setFirstName("Floriane");
+        serveurDM.setLastName("Serveuse");
+        serveurDM.setPhone("+237 689473811");
         serveurDM.setRole(Role.SERVER);
         serveurDM.setRestaurant(epieurien);
         serveurDM.setActive(true);
         userRepository.save(serveurDM);
+
         // Chef - Divine Mère
         AppUser chefDM = new AppUser();
-        chefDM.setUsername("cusiniere_divinemere");
-        chefDM.setEmail("cusiniere@divinemere.com");
+        chefDM.setUsername("carelle_divinemere");
+        chefDM.setEmail("carelle@divinemere.com");
         chefDM.setPassword(defaultPassword);
-        chefDM.setFirstName("Awa");
-        chefDM.setLastName("Diagne");
-        chefDM.setPhone("+221 77 111 22 33");
+        chefDM.setFirstName("Carelle");
+        chefDM.setLastName("Cuisiniere");
+        chefDM.setPhone("+237 689473811");
         chefDM.setRole(Role.CHEF);
         chefDM.setRestaurant(epieurien);
         chefDM.setActive(true);
@@ -184,12 +185,12 @@ public class DataInitializer implements CommandLineRunner {
 
         // Caissier - Divine Mère
         AppUser caissierDM = new AppUser();
-        caissierDM.setUsername("caissier_divinemere");
-        caissierDM.setEmail("caissier@divinemere.com");
+        caissierDM.setUsername("floriane_caissiere");
+        caissierDM.setEmail("floriane.caissiere@divinemere.com");
         caissierDM.setPassword(defaultPassword);
-        caissierDM.setFirstName("Ousmane");
-        caissierDM.setLastName("Sy");
-        caissierDM.setPhone("+221 77 444 55 66");
+        caissierDM.setFirstName("Floriane");
+        caissierDM.setLastName("Caissiere");
+        caissierDM.setPhone("+237 689473811");
         caissierDM.setRole(Role.CASHIER);
         caissierDM.setRestaurant(epieurien);
         caissierDM.setActive(true);
@@ -202,7 +203,7 @@ public class DataInitializer implements CommandLineRunner {
         livreurDM.setPassword(defaultPassword);
         livreurDM.setFirstName("Cheikh");
         livreurDM.setLastName("Diallo");
-        livreurDM.setPhone("+221 77 777 88 99");
+        livreurDM.setPhone("+237 689473811");
         livreurDM.setRole(Role.DELIVERY);
         livreurDM.setRestaurant(epieurien);
         livreurDM.setActive(true);
@@ -497,6 +498,68 @@ public class DataInitializer implements CommandLineRunner {
         eauMinerale.setStockQuantity(100);
         eauMinerale.setBeverage(true);
         productRepository.save(eauMinerale);
+
+        ProductCategory packsCat = new ProductCategory();
+        packsCat.setName("Packs Saint Valentin");
+        packsCat.setDescription("Formules et packs promotionnels pour couples et groupes.");
+        packsCat.setRestaurant(epieurien);
+        packsCat.setDisplayOrder(5);
+        packsCat.setParentCategory(alimentsDM);
+        categoryRepository.save(packsCat);
+
+        Product pack1 = new Product();
+        pack1.setName("Pack 1 - Duo Saint Valentin");
+        pack1.setDescription("02 Burgers, 01 Portion fritte de pomme, 02 Cocktails de jus, 02 Petits mambo, 02 Fleurets.");
+        pack1.setPrice(5000.0);
+        pack1.setCategory(packsCat);
+        pack1.setRestaurant(epieurien);
+        pack1.setStockQuantity(50);
+        productRepository.save(pack1);
+
+        Product pack2 = new Product();
+        pack2.setName("Pack 2 - Gourmand Valentin");
+        pack2.setDescription("01 Bouteille de vin, 02 Burgers, 01 Portion de fritte de pomme, 02 Cocktails de jus, 02 Chocolats, 02 Fleurets rosés.");
+        pack2.setPrice(10000.0);
+        pack2.setCategory(packsCat);
+        pack2.setRestaurant(epieurien);
+        pack2.setStockQuantity(50);
+        productRepository.save(pack2);
+
+        Product pack3 = new Product();
+        pack3.setName("Pack 3 - Festin d'Amour");
+        pack3.setDescription("01 Vin moscato, 01 Pizzas, 02 Burgers, 02 Chocolats, 02 Fleurets de rosé, 02 Cocktails de jus.");
+        pack3.setPrice(18000.0);
+        pack3.setCategory(packsCat);
+        pack3.setRestaurant(epieurien);
+        pack3.setStockQuantity(50);
+        productRepository.save(pack3);
+
+        Product pack4 = new Product();
+        pack4.setName("Pack 4 - Prestige Impérial");
+        pack4.setDescription("01 Whisky martini / vin luis, 01 Coca-Cola, 01 Pot de glaçon, 12 Morceaux de poulet pané, 02 Burgers, 04 Portions frites, 02 Chocolats, 02 Fleurets de rose.");
+        pack4.setPrice(25900.0);
+        pack4.setCategory(packsCat);
+        pack4.setRestaurant(epieurien);
+        pack4.setStockQuantity(50);
+        productRepository.save(pack4);
+
+        Product pack5 = new Product();
+        pack5.setName("Pack 5 - Soirée Royale");
+        pack5.setDescription("01 Whisky red label ou bailys, 01 Coca-Cola, 02 Burgers, 06 Morceaux de poulet pane, 02 Chocolats, 02 Fleurets rose.");
+        pack5.setPrice(25000.0);
+        pack5.setCategory(packsCat);
+        pack5.setRestaurant(epieurien);
+        pack5.setStockQuantity(50);
+        productRepository.save(pack5);
+
+        Product pack6 = new Product();
+        pack6.setName("Pack Prestige 50k");
+        pack6.setDescription("01 Whisky monkey ou chivas 12 ans, 01 Coca-Cola, 04 Burgers, 12 Morceaux de poulet pane, 04 Portions de fritte, 03 Shawarma, 02 Cocktails de jus de fruit, 02 Chocolats, 02 Fleurets.");
+        pack6.setPrice(50000.0);
+        pack6.setCategory(packsCat);
+        pack6.setRestaurant(epieurien);
+        pack6.setStockQuantity(50);
+        productRepository.save(pack6);
 
         // Dining Tables for Divine Mère
         for (int i = 1; i <= 4; i++) {

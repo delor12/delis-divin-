@@ -203,9 +203,9 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="/">
-                <img th:src="@{'/images/logo delisdivin.png'}" style="height: 40px; object-fit: contain;" alt="Delis Divin Logo">
-                <span style="font-size: 1.5rem; letter-spacing: -0.5px;">Delis Divin</span>
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
+                <img th:src="${restaurant.logoUrl != null && !#strings.isEmpty(restaurant.logoUrl)} ? ${restaurant.logoUrl} : '/images/logo delisdivin.png'" style="height: 40px; width: 40px; object-fit: cover; border-radius: 50%;" alt="Restaurant Logo">
+                <span style="font-size: 1.35rem; letter-spacing: -0.5px;" th:text="${restaurant.name}">Nom Restaurant</span>
             </a>
             <div class="d-flex align-items-center gap-3">
                 <a href="/" class="btn btn-outline-secondary rounded-pill btn-sm px-3"><i class="bi bi-arrow-left me-1"></i>Retour Accueil</a>
@@ -256,7 +256,7 @@
                     <div class="tab-pane fade show active" id="aliments-pane" role="tabpanel" aria-labelledby="aliments-tab" tabindex="0">
                         <div class="d-flex flex-column gap-5">
                             <!-- Loop over subcategories of Aliments -->
-                            <div th:each="cat : ${categories}" th:if="${cat.parentCategoryName == 'Aliments'}" th:id="'cat-' + ${cat.id}">
+                            <div th:each="cat : ${categories}" th:if="${(cat.parentCategoryName != null && #strings.toLowerCase(cat.parentCategoryName).contains('aliment')) || (cat.parentCategoryName == null && #strings.toLowerCase(cat.name).contains('aliment'))}" th:id="'cat-' + ${cat.id}">
                                 <h4 class="fw-bold mb-4 text-primary subcategory-header pb-2" th:text="${cat.name}"></h4>
                                 
                                 <div class="row g-3">
@@ -286,7 +286,7 @@
                             </div>
                             
                             <!-- Placeholder if no subcategories exist for Aliments -->
-                            <div th:if="${#lists.isEmpty(categories.?[parentCategoryName == 'Aliments'])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                            <div th:if="${#lists.isEmpty(categories.?[(parentCategoryName != null && parentCategoryName.toLowerCase().contains('aliment')) || (parentCategoryName == null && name.toLowerCase().contains('aliment'))])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-primary"></i>
                                 Aucun plat disponible pour le moment.
                             </div>
@@ -297,7 +297,7 @@
                     <div class="tab-pane fade" id="boissons-pane" role="tabpanel" aria-labelledby="boissons-tab" tabindex="0">
                         <div class="d-flex flex-column gap-5">
                             <!-- Loop over subcategories of Boissons -->
-                            <div th:each="cat : ${categories}" th:if="${cat.parentCategoryName == 'Boissons'}" th:id="'cat-' + ${cat.id}">
+                            <div th:each="cat : ${categories}" th:if="${(cat.parentCategoryName != null && #strings.toLowerCase(cat.parentCategoryName).contains('boisson')) || (cat.parentCategoryName == null && #strings.toLowerCase(cat.name).contains('boisson'))}" th:id="'cat-' + ${cat.id}">
                                 <h4 class="fw-bold mb-4 text-primary subcategory-header pb-2" th:text="${cat.name}"></h4>
                                 
                                 <div class="row g-3">
@@ -327,7 +327,7 @@
                             </div>
                             
                             <!-- Placeholder if no subcategories exist for Boissons -->
-                            <div th:if="${#lists.isEmpty(categories.?[parentCategoryName == 'Boissons'])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                            <div th:if="${#lists.isEmpty(categories.?[(parentCategoryName != null && parentCategoryName.toLowerCase().contains('boisson')) || (parentCategoryName == null && name.toLowerCase().contains('boisson'))])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-primary"></i>
                                 Aucune boisson disponible pour le moment.
                             </div>
@@ -338,7 +338,7 @@
                     <div class="tab-pane fade" id="patisseries-pane" role="tabpanel" aria-labelledby="patisseries-tab" tabindex="0">
                         <div class="d-flex flex-column gap-5">
                             <!-- Loop over subcategories of Pâtisseries -->
-                            <div th:each="cat : ${categories}" th:if="${cat.parentCategoryName == 'Pâtisseries'}" th:id="'cat-' + ${cat.id}">
+                            <div th:each="cat : ${categories}" th:if="${(cat.parentCategoryName != null && (#strings.toLowerCase(cat.parentCategoryName).contains('patiss') || #strings.toLowerCase(cat.parentCategoryName).contains('pâtiss'))) || (cat.parentCategoryName == null && (#strings.toLowerCase(cat.name).contains('patiss') || #strings.toLowerCase(cat.name).contains('pâtiss')))}" th:id="'cat-' + ${cat.id}">
                                 <h4 class="fw-bold mb-4 text-primary subcategory-header pb-2" th:text="${cat.name}"></h4>
                                 
                                 <div class="row g-3">
@@ -368,7 +368,7 @@
                             </div>
                             
                             <!-- Placeholder if no subcategories exist for Pâtisseries -->
-                            <div th:if="${#lists.isEmpty(categories.?[parentCategoryName == 'Pâtisseries'])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                            <div th:if="${#lists.isEmpty(categories.?[(parentCategoryName != null && (parentCategoryName.toLowerCase().contains('patiss') || parentCategoryName.toLowerCase().contains('pâtiss'))) || (parentCategoryName == null && (name.toLowerCase().contains('patiss') || name.toLowerCase().contains('pâtiss')))])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-primary"></i>
                                 Aucune pâtisserie disponible pour le moment.
                             </div>
@@ -507,10 +507,23 @@
                             Confirmer & Payer <i class="bi bi-check-circle-fill ms-1"></i>
                         </button>
                     </form>
-                </div>
+        </div>
             </div>
         </div>
     </div>
+
+    <!-- Footer with discrete Delis Divin stamp -->
+    <footer class="footer mt-auto py-4 bg-light text-center border-top">
+        <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+            <span class="text-muted small">© <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> <span th:text="${restaurant.name}"></span>. Tous droits réservés.</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small opacity-75">Propulsé par</span>
+                <span class="badge bg-primary text-white py-1.5 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-egg-fried me-1"></i> Delis Divin
+                </span>
+            </div>
+        </div>
+    </footer>
 
     <!-- Client-side Panier JavaScript -->
     <script th:inline="javascript">
