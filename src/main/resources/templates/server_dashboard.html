@@ -811,6 +811,12 @@
                     const msg = JSON.parse(msgOutput.body);
                     handleIncomingChatMessage(msg);
                 });
+
+                // Subscribe to chat topic
+                stompClient.subscribe(`/topic/restaurant/${restaurantId}/chat`, function (msgOutput) {
+                    const msg = JSON.parse(msgOutput.body);
+                    handleIncomingChatMessage(msg);
+                });
             }, function (error) {
                 setTimeout(connect, 5000); // Retry reconnect in 5 seconds
             });

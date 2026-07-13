@@ -510,12 +510,15 @@
                 },
                 body: JSON.stringify(orderPayload)
             })
+ feature/delivery-and-cashier-dashboards
             .then(res => {
                 if (!res.ok) {
                     return res.json().then(err => { throw new Error(err.message || "Erreur lors de la commande"); });
                 }
                 return res.json();
             })
+
+ main
             .then(order => {
                 if (orderType === 'TAKE_AWAY' || orderType === 'DELIVERY') {
                     // Show payment modal
@@ -582,6 +585,158 @@
             })
             .catch(err => {
                 alert("Erreur de paiement: " + err.message);
+            });
+        });
+    </script>
+
+    <!-- SockJS and STOMP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <!-- Chat Widget HTML -->
+    <div class="chat-widget text-dark">
+        <div class="chat-bubble" onclick="toggleChatWindow()">
+            <i class="bi bi-chat-dots-fill"></i>
+        </div>
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <span>💬 Delis Chat en Direct</span>
+                <button type="button" class="btn-close btn-close-white btn-sm" onclick="toggleChatWindow()"></button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg staff">
+                    Bonjour ! Besoin d'aide pour votre commande ou votre table ? Posez votre question ici !
+                </div>
+            </div>
+            <form id="chatForm" class="chat-input-area">
+                <input type="text" id="chatInput" class="form-control form-control-sm border-0 bg-light text-dark" placeholder="Écrivez votre message..." required>
+                <button type="submit" class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-send-fill fs-6"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Generate or retrieve Chat Client ID
+        let chatClientId = localStorage.getItem('chatClientId');
+        if (!chatClientId) {
+            chatClientId = 'client_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+            localStorage.setItem('chatClientId', chatClientId);
+        }
+
+        const restaurantId = [[${restaurant.id}]];
+
+        function getChatClientName() {
+            const tableSelect = document.getElementById('tableId');
+            if (tableSelect && tableSelect.value) {
+                const selectedOpt = tableSelect.options[tableSelect.selectedIndex];
+                return 'Table N° ' + selectedOpt.text.split(' ')[2]; // Extract Table Number
+            }
+            const nameInput = document.getElementById('clientName');
+            if (nameInput && nameInput.value.trim()) {
+                return nameInput.value.trim();
+            }
+            return 'Client ' + chatClientId.substring(7, 12).toUpperCase();
+        }
+
+        function toggleChatWindow() {
+            const win = document.getElementById('chatWindow');
+            win.classList.toggle('active');
+            if (win.classList.contains('active')) {
+                loadChatHistory();
+                setTimeout(() => {
+                    const msgs = document.getElementById('chatMessages');
+                    msgs.scrollTop = msgs.scrollHeight;
+                }, 200);
+            }
+        }
+
+        function loadChatHistory() {
+            fetch(`/api/public/chat/history?restaurantId=${restaurantId}&clientUniqueId=${chatClientId}`)
+            .then(res => res.json())
+            .then(messages => {
+                const msgsContainer = document.getElementById('chatMessages');
+                msgsContainer.innerHTML = '';
+                // Add initial greeting
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'chat-msg staff';
+                welcomeDiv.textContent = "Bonjour ! Besoin d'aide pour votre commande ou votre table ? Posez votre question ici !";
+                msgsContainer.appendChild(welcomeDiv);
+
+                messages.forEach(msg => {
+                    appendChatMessage(msg);
+                });
+            });
+        }
+
+        function appendChatMessage(msg) {
+            const msgsContainer = document.getElementById('chatMessages');
+            const isClient = msg.senderRole === 'CLIENT';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${isClient ? 'client' : 'staff'}`;
+            
+            if (!isClient) {
+                msgDiv.innerHTML = `<strong>${msg.senderName} :</strong> ${msg.content}`;
+            } else {
+                msgDiv.textContent = msg.content;
+            }
+            
+            msgsContainer.appendChild(msgDiv);
+            msgsContainer.scrollTop = msgsContainer.scrollHeight;
+        }
+
+        // WebSocket listener for live replies
+        const chatSocket = new SockJS('/ws');
+        const chatStompClient = Stomp.over(chatSocket);
+        chatStompClient.debug = null;
+        chatStompClient.connect({}, function (frame) {
+            chatStompClient.subscribe(`/topic/restaurant/${restaurantId}/chat`, function (msgOutput) {
+                const msg = JSON.parse(msgOutput.body);
+                // Only append if it belongs to this client and it's sent by STAFF or ADMIN (meaning it's an answer)
+                if (msg.clientUniqueId === chatClientId && msg.senderRole !== 'CLIENT') {
+                    appendChatMessage(msg);
+                    // Sound notification chime
+                    try {
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = audioCtx.createOscillator();
+                        const gainNode = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                        osc.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 0.15);
+                    } catch(e){}
+                }
+            });
+        });
+
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const payload = {
+                restaurantId: restaurantId,
+                clientUniqueId: chatClientId,
+                senderName: getChatClientName(),
+                senderRole: 'CLIENT',
+                content: text
+            };
+
+            fetch('/api/public/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(msg => {
+                appendChatMessage(msg);
+                input.value = '';
             });
         });
     </script>

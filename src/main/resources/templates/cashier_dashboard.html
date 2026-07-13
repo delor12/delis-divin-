@@ -77,6 +77,7 @@
             <div class="tab-pane show active" id="billingSection" role="tabpanel">
                 <div class="row g-4">
                     
+ feature/delivery-and-cashier-dashboards
                     <!-- Left Column: Active orders waiting for checkout -->
                     <div class="col-lg-7">
                         <div class="card premium-card p-4 h-100">
@@ -192,6 +193,40 @@
                                 <button class="btn btn-outline-secondary w-100 rounded-pill py-2 mt-2" onclick="resetCashierUI()">Nouvel Encaissement</button>
                             </div>
                         </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th>Commande</th>
+                                    <th>Client / Table</th>
+                                    <th>Statut</th>
+                                    <th>Total</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ord : ${orders}" th:if="${ord.status.name() != 'COMPLETED' && ord.status.name() != 'CANCELLED'}">
+                                    <td class="fw-bold text-dark" th:text="'#' + ${ord.id}">#10</td>
+                                    <td>
+                                        <span th:if="${ord.tableNumber != null}" th:text="'Table N° ' + ${ord.tableNumber}">Table 1</span>
+                                        <span th:if="${ord.tableNumber == null}" th:text="${ord.clientName}">Client</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary" th:text="${ord.status}">READY</span>
+                                    </td>
+                                    <td class="fw-bold text-primary" th:text="${#numbers.formatDecimal(ord.totalAmount, 0, 'POINT', 0, 'COMMA')} + ' F'">1000 F</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm rounded-pill px-3" 
+                                                th:data-id="${ord.id}"
+                                                th:data-amount="${ord.totalAmount}"
+                                                th:data-client="${ord.clientName}"
+                                                onclick="selectOrder(this.getAttribute('data-id'), parseFloat(this.getAttribute('data-amount')), this.getAttribute('data-client'))">Encaisser</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+main
                     </div>
 
                 </div>
@@ -326,6 +361,7 @@
                         </div>
                     </div>
 
+ feature/delivery-and-cashier-dashboards
                     <div class="col-md-8">
                         <div class="card premium-card p-4">
                             <h5 class="fw-bold text-primary mb-4"><i class="bi bi-cash-coin me-2"></i>Ventilation par Mode de Paiement</h5>
@@ -337,6 +373,20 @@
                                     </div>
                                 </div>
                             </div>
+
+                    <!-- Payment processing form -->
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label for="paymentMethod" class="form-label small fw-bold text-muted">Moyen de Paiement</label>
+                            <select id="paymentMethod" class="form-select bg-light" required>
+                                <option value="CASH">Espèces</option>
+                                <option value="ORANGE_MONEY">Orange Money</option>
+                                <option value="MTN_MONEY">MTN Mobile Money</option>
+                                <option value="WAVE">Wave</option>
+                                <option value="FREE_MONEY">Free Money</option>
+                                <option value="CARD">Carte Bancaire</option>
+                            </select>
+ main
                         </div>
                     </div>
 

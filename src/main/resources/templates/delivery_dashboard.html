@@ -232,13 +232,22 @@
                                     </td>
                                     <td class="text-end">
                                         <!-- Actions depend on status -->
+feature/delivery-and-cashier-dashboards
                                         <div class="d-flex gap-2 justify-content-end">
                                              <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold" 
+
+                                        <div class="d-flex gap-2">
+                                             <button class="btn btn-warning btn-sm rounded-pill px-3" 
+main
                                                      th:if="${del.status.name() == 'READY'}" 
                                                      th:data-id="${del.id}"
                                                      onclick="updateDeliveryStatus(this.getAttribute('data-id'), 'PICKED_UP')">Récupérer</button>
                                                      
+feature/delivery-and-cashier-dashboards
                                              <button class="btn btn-success btn-sm rounded-pill px-3 fw-bold" 
+
+                                             <button class="btn btn-success btn-sm rounded-pill px-3" 
+main
                                                      th:if="${del.status.name() == 'PICKED_UP'}" 
                                                      th:data-id="${del.id}"
                                                      onclick="updateDeliveryStatus(this.getAttribute('data-id'), 'COMPLETED')">Livrer <i class="bi bi-check-lg"></i></button>
