@@ -216,6 +216,7 @@ main
                             <tr class="text-muted small">
                                 <th>Nom</th>
                                 <th>Description</th>
+                                <th>Parente</th>
                                 <th>Ordre</th>
                                 <th>Actions</th>
                             </tr>
@@ -224,6 +225,10 @@ main
                             <tr th:each="cat : ${categories}">
                                 <td class="fw-bold text-dark" th:text="${cat.name}">Category</td>
                                 <td class="small text-muted" th:text="${cat.description}">Desc</td>
+                                <td>
+                                    <span class="badge bg-info text-white" th:if="${cat.parentCategoryName != null}" th:text="${cat.parentCategoryName}">Parente</span>
+                                    <span class="badge bg-light text-dark border" th:if="${cat.parentCategoryName == null}">Principale</span>
+                                </td>
                                 <td th:text="${cat.displayOrder}">0</td>
                                 <td>
                                      <button class="btn btn-outline-danger btn-sm rounded-circle" th:data-id="${cat.id}" onclick="deleteCategory(this.getAttribute('data-id'))"><i class="bi bi-trash"></i></button>
@@ -403,6 +408,13 @@ main
                             <label for="catDesc" class="form-label small fw-bold">Description</label>
                             <input type="text" class="form-control bg-light" id="catDesc">
                         </div>
+                        <div class="mb-3">
+                            <label for="catParent" class="form-label small fw-bold">Catégorie Parente</label>
+                            <select class="form-select bg-light" id="catParent">
+                                <option value="">Aucune (Catégorie principale)</option>
+                                <option th:each="c : ${categories}" th:if="${c.parentCategoryId == null}" th:value="${c.id}" th:text="${c.name}"></option>
+                            </select>
+                        </div>
                         <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-3">Enregistrer la catégorie</button>
                     </form>
                 </div>
@@ -490,6 +502,7 @@ main
                 name: document.getElementById('catName').value,
                 displayOrder: parseInt(document.getElementById('catOrder').value),
                 description: document.getElementById('catDesc').value,
+                parentCategoryId: document.getElementById('catParent').value ? parseInt(document.getElementById('catParent').value) : null,
                 active: true
             };
 

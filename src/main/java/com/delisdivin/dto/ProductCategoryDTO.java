@@ -12,4 +12,6 @@ public class ProductCategoryDTO {
     private Integer displayOrder;
     private String supplierName;
     private String supplierContact;
+    private Long parentCategoryId;
+    private String parentCategoryName;
 }

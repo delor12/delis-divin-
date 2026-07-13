@@ -35,4 +35,8 @@ public class ProductCategory extends AbstractAuditable {
 
     @Column(name = "supplier_contact")
     private String supplierContact;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_category_id")
+    private ProductCategory parentCategory;
 }

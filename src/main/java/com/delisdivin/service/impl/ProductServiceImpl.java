@@ -35,6 +35,13 @@ public class ProductServiceImpl implements ProductService {
         Restaurant restaurant = restaurantRepository.findById(dto.getRestaurantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + dto.getRestaurantId()));
         ProductCategory category = mapper.toEntity(dto, restaurant);
+        
+        if (dto.getParentCategoryId() != null) {
+            ProductCategory parent = categoryRepository.findById(dto.getParentCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent Category not found with ID: " + dto.getParentCategoryId()));
+            category.setParentCategory(parent);
+        }
+        
         ProductCategory saved = categoryRepository.save(category);
         return mapper.toDto(saved);
     }
@@ -51,6 +58,14 @@ public class ProductServiceImpl implements ProductService {
         category.setDisplayOrder(dto.getDisplayOrder());
         category.setSupplierName(dto.getSupplierName());
         category.setSupplierContact(dto.getSupplierContact());
+
+        if (dto.getParentCategoryId() != null) {
+            ProductCategory parent = categoryRepository.findById(dto.getParentCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent Category not found with ID: " + dto.getParentCategoryId()));
+            category.setParentCategory(parent);
+        } else {
+            category.setParentCategory(null);
+        }
 
         ProductCategory updated = categoryRepository.save(category);
         return mapper.toDto(updated);

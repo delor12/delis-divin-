@@ -95,6 +95,10 @@ public class AppMapper {
         dto.setDisplayOrder(category.getDisplayOrder());
         dto.setSupplierName(category.getSupplierName());
         dto.setSupplierContact(category.getSupplierContact());
+        if (category.getParentCategory() != null) {
+            dto.setParentCategoryId(category.getParentCategory().getId());
+            dto.setParentCategoryName(category.getParentCategory().getName());
+        }
         return dto;
     }
 

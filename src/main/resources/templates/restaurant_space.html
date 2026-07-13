@@ -47,6 +47,44 @@
             background-color: var(--primary-light);
             color: var(--primary-color);
         }
+        #menuTabs {
+            border: none;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: var(--card-shadow);
+        }
+        #menuTabs .nav-link {
+            color: var(--gray-medium);
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #menuTabs .nav-link.active {
+            background: var(--primary-gradient);
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(106, 13, 173, 0.25);
+        }
+        #menuTabs .nav-link:hover:not(.active) {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .subcategory-header {
+            position: relative;
+            padding-left: 15px;
+        }
+        .subcategory-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15%;
+            height: 70%;
+            width: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
         .product-card {
             border: none;
             border-radius: var(--border-radius);
@@ -193,42 +231,146 @@
         <div class="row g-4">
             <!-- Left Column: Menu Items -->
             <div class="col-lg-8">
-                <!-- Categories Bar -->
-                <div class="category-nav d-flex gap-2 overflow-x-auto px-3">
-                    <a href="#all" class="category-nav-link active">Tout le Menu</a>
-                    <a th:each="cat : ${categories}" 
-                       th:href="'#cat-' + ${cat.id}" 
-                       th:text="${cat.name}" 
-                       class="category-nav-link"></a>
-                </div>
+                <!-- Main Categories Selector (Tabs) -->
+                <ul class="nav nav-pills nav-fill gap-2 mb-4" id="menuTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-3 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center gap-2" id="aliments-tab" data-bs-toggle="tab" data-bs-target="#aliments-pane" type="button" role="tab" aria-controls="aliments-pane" aria-selected="true">
+                            <i class="bi bi-egg-fried fs-4"></i> Aliments
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-3 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center gap-2" id="boissons-tab" data-bs-toggle="tab" data-bs-target="#boissons-pane" type="button" role="tab" aria-controls="boissons-pane" aria-selected="false">
+                            <i class="bi bi-cup-straw fs-4"></i> Boissons
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-3 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center gap-2" id="patisseries-tab" data-bs-toggle="tab" data-bs-target="#patisseries-pane" type="button" role="tab" aria-controls="patisseries-pane" aria-selected="false">
+                            <i class="bi bi-cake2 fs-4"></i> Pâtisseries
+                        </button>
+                    </li>
+                </ul>
 
-                <!-- Products -->
-                <div class="d-flex flex-column gap-5">
-                    <div th:each="cat : ${categories}" th:id="'cat-' + ${cat.id}">
-                        <h4 class="fw-bold mb-4 text-primary border-bottom pb-2" th:text="${cat.name}"></h4>
-                        
-                        <div class="row g-3">
-                            <!-- Filter products in category -->
-                            <div class="col-md-6" th:each="product : ${products}" th:if="${product.categoryId == cat.id}">
-                                <div class="card product-card h-100">
-                                    <img th:src="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)} ? ${product.imageUrl} : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600'" 
-                                         class="product-img" alt="Menu Item">
-                                    <div class="card-body p-4 d-flex flex-column justify-content-between">
-                                        <div>
-                                            <h5 class="fw-bold text-dark" th:text="${product.name}"></h5>
-                                            <p class="text-muted small" th:text="${product.description}"></p>
-                                        </div>
-                                        <div class="d-flex align-items-center justify-content-between mt-3">
-                                            <span class="fs-5 fw-bold text-primary" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} + ' FCFA'"></span>
-                                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm btn-add-to-cart"
-                                                    th:data-id="${product.id}"
-                                                    th:data-name="${product.name}"
-                                                    th:data-price="${product.price}">
-                                                <i class="bi bi-plus-lg me-1"></i> Ajouter
-                                            </button>
+                <!-- Products Display grouped by Main Categories -->
+                <div class="tab-content" id="menuTabsContent">
+                    <!-- Pane: Aliments -->
+                    <div class="tab-pane fade show active" id="aliments-pane" role="tabpanel" aria-labelledby="aliments-tab" tabindex="0">
+                        <div class="d-flex flex-column gap-5">
+                            <!-- Loop over subcategories of Aliments -->
+                            <div th:each="cat : ${categories}" th:if="${cat.parentCategoryName == 'Aliments'}" th:id="'cat-' + ${cat.id}">
+                                <h4 class="fw-bold mb-4 text-primary subcategory-header pb-2" th:text="${cat.name}"></h4>
+                                
+                                <div class="row g-3">
+                                    <!-- Filter products in category -->
+                                    <div class="col-md-6" th:each="product : ${products}" th:if="${product.categoryId == cat.id}">
+                                        <div class="card product-card h-100">
+                                            <img th:src="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)} ? ${product.imageUrl} : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600'" 
+                                                 class="product-img" alt="Menu Item">
+                                            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <h5 class="fw-bold text-dark" th:text="${product.name}"></h5>
+                                                    <p class="text-muted small" th:text="${product.description}"></p>
+                                                </div>
+                                                <div class="d-flex align-items-center justify-content-between mt-3">
+                                                    <span class="fs-5 fw-bold text-primary" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} + ' FCFA'"></span>
+                                                    <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm btn-add-to-cart"
+                                                            th:data-id="${product.id}"
+                                                            th:data-name="${product.name}"
+                                                            th:data-price="${product.price}">
+                                                        <i class="bi bi-plus-lg me-1"></i> Ajouter
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <!-- Placeholder if no subcategories exist for Aliments -->
+                            <div th:if="${#lists.isEmpty(categories.?[parentCategoryName == 'Aliments'])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-primary"></i>
+                                Aucun plat disponible pour le moment.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pane: Boissons -->
+                    <div class="tab-pane fade" id="boissons-pane" role="tabpanel" aria-labelledby="boissons-tab" tabindex="0">
+                        <div class="d-flex flex-column gap-5">
+                            <!-- Loop over subcategories of Boissons -->
+                            <div th:each="cat : ${categories}" th:if="${cat.parentCategoryName == 'Boissons'}" th:id="'cat-' + ${cat.id}">
+                                <h4 class="fw-bold mb-4 text-primary subcategory-header pb-2" th:text="${cat.name}"></h4>
+                                
+                                <div class="row g-3">
+                                    <!-- Filter products in category -->
+                                    <div class="col-md-6" th:each="product : ${products}" th:if="${product.categoryId == cat.id}">
+                                        <div class="card product-card h-100">
+                                            <img th:src="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)} ? ${product.imageUrl} : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600'" 
+                                                 class="product-img" alt="Menu Item">
+                                            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <h5 class="fw-bold text-dark" th:text="${product.name}"></h5>
+                                                    <p class="text-muted small" th:text="${product.description}"></p>
+                                                </div>
+                                                <div class="d-flex align-items-center justify-content-between mt-3">
+                                                    <span class="fs-5 fw-bold text-primary" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} + ' FCFA'"></span>
+                                                    <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm btn-add-to-cart"
+                                                            th:data-id="${product.id}"
+                                                            th:data-name="${product.name}"
+                                                            th:data-price="${product.price}">
+                                                        <i class="bi bi-plus-lg me-1"></i> Ajouter
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Placeholder if no subcategories exist for Boissons -->
+                            <div th:if="${#lists.isEmpty(categories.?[parentCategoryName == 'Boissons'])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-primary"></i>
+                                Aucune boisson disponible pour le moment.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pane: Pâtisseries -->
+                    <div class="tab-pane fade" id="patisseries-pane" role="tabpanel" aria-labelledby="patisseries-tab" tabindex="0">
+                        <div class="d-flex flex-column gap-5">
+                            <!-- Loop over subcategories of Pâtisseries -->
+                            <div th:each="cat : ${categories}" th:if="${cat.parentCategoryName == 'Pâtisseries'}" th:id="'cat-' + ${cat.id}">
+                                <h4 class="fw-bold mb-4 text-primary subcategory-header pb-2" th:text="${cat.name}"></h4>
+                                
+                                <div class="row g-3">
+                                    <!-- Filter products in category -->
+                                    <div class="col-md-6" th:each="product : ${products}" th:if="${product.categoryId == cat.id}">
+                                        <div class="card product-card h-100">
+                                            <img th:src="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)} ? ${product.imageUrl} : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600'" 
+                                                 class="product-img" alt="Menu Item">
+                                            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <h5 class="fw-bold text-dark" th:text="${product.name}"></h5>
+                                                    <p class="text-muted small" th:text="${product.description}"></p>
+                                                </div>
+                                                <div class="d-flex align-items-center justify-content-between mt-3">
+                                                    <span class="fs-5 fw-bold text-primary" th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} + ' FCFA'"></span>
+                                                    <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm btn-add-to-cart"
+                                                            th:data-id="${product.id}"
+                                                            th:data-name="${product.name}"
+                                                            th:data-price="${product.price}">
+                                                        <i class="bi bi-plus-lg me-1"></i> Ajouter
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Placeholder if no subcategories exist for Pâtisseries -->
+                            <div th:if="${#lists.isEmpty(categories.?[parentCategoryName == 'Pâtisseries'])}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-primary"></i>
+                                Aucune pâtisserie disponible pour le moment.
                             </div>
                         </div>
                     </div>

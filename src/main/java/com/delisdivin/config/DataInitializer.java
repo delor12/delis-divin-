@@ -246,15 +246,29 @@ public class DataInitializer implements CommandLineRunner {
         livreur2DM.setLongitude(9.7750);
         userRepository.save(livreur2DM);
 
+        ProductCategory alimentsBistrot = new ProductCategory();
+        alimentsBistrot.setName("Aliments");
+        alimentsBistrot.setDescription("Plats et repas principaux.");
+        alimentsBistrot.setRestaurant(bistrot);
+        alimentsBistrot.setDisplayOrder(1);
+        alimentsBistrot.setActive(true);
+        categoryRepository.save(alimentsBistrot);
 
-        serveurDM.setRestaurant(bistrot);
-        serveurDM.setActive(true);
-        userRepository.save(serveurDM);
+        ProductCategory boissonsBistrot = new ProductCategory();
+        boissonsBistrot.setName("Boissons");
+        boissonsBistrot.setDescription("Boissons chaudes et froides.");
+        boissonsBistrot.setRestaurant(bistrot);
+        boissonsBistrot.setDisplayOrder(2);
+        boissonsBistrot.setActive(true);
+        categoryRepository.save(boissonsBistrot);
 
-        main
-        main
-        // 5. Seed Product Categories
- main
+        ProductCategory patisseriesBistrot = new ProductCategory();
+        patisseriesBistrot.setName("Pâtisseries");
+        patisseriesBistrot.setDescription("Gâteaux et viennoiseries.");
+        patisseriesBistrot.setRestaurant(bistrot);
+        patisseriesBistrot.setDisplayOrder(3);
+        patisseriesBistrot.setActive(true);
+        categoryRepository.save(patisseriesBistrot);
         ProductCategory ent = new ProductCategory();
         ent.setName("Entrées");
         ent.setDescription("Mises en bouche légères et salades.");
@@ -262,6 +276,7 @@ public class DataInitializer implements CommandLineRunner {
         ent.setDisplayOrder(1);
         ent.setSupplierName("Maraîcher du Centre");
         ent.setSupplierContact("+221 77 123 4567");
+        ent.setParentCategory(alimentsBistrot);
         categoryRepository.save(ent);
 
         ProductCategory plat = new ProductCategory();
@@ -271,6 +286,7 @@ public class DataInitializer implements CommandLineRunner {
         plat.setDisplayOrder(2);
         plat.setSupplierName("Boucherie Dakaroise");
         plat.setSupplierContact("+221 77 987 6543");
+        plat.setParentCategory(alimentsBistrot);
         categoryRepository.save(plat);
 
         ProductCategory drink = new ProductCategory();
@@ -280,6 +296,7 @@ public class DataInitializer implements CommandLineRunner {
         drink.setDisplayOrder(3);
         drink.setSupplierName("SOBOA (Sénégal)");
         drink.setSupplierContact("+221 33 839 1200");
+        drink.setParentCategory(boissonsBistrot);
         categoryRepository.save(drink);
 
         ProductCategory dessert = new ProductCategory();
@@ -289,6 +306,7 @@ public class DataInitializer implements CommandLineRunner {
         dessert.setDisplayOrder(4);
         dessert.setSupplierName("Pâtisserie La Ruche");
         dessert.setSupplierContact("+221 77 555 4321");
+        dessert.setParentCategory(patisseriesBistrot);
         categoryRepository.save(dessert);
 
         // 6. Seed Products
@@ -376,6 +394,30 @@ public class DataInitializer implements CommandLineRunner {
 
         // Seeding for Divine Mère (Douala)
         // Categories
+        ProductCategory alimentsDM = new ProductCategory();
+        alimentsDM.setName("Aliments");
+        alimentsDM.setDescription("Plats et repas principaux.");
+        alimentsDM.setRestaurant(epieurien);
+        alimentsDM.setDisplayOrder(1);
+        alimentsDM.setActive(true);
+        categoryRepository.save(alimentsDM);
+
+        ProductCategory boissonsDM = new ProductCategory();
+        boissonsDM.setName("Boissons");
+        boissonsDM.setDescription("Boissons rafraîchissantes.");
+        boissonsDM.setRestaurant(epieurien);
+        boissonsDM.setDisplayOrder(2);
+        boissonsDM.setActive(true);
+        categoryRepository.save(boissonsDM);
+
+        ProductCategory patisseriesDM = new ProductCategory();
+        patisseriesDM.setName("Pâtisseries");
+        patisseriesDM.setDescription("Gâteaux et desserts sucrés.");
+        patisseriesDM.setRestaurant(epieurien);
+        patisseriesDM.setDisplayOrder(3);
+        patisseriesDM.setActive(true);
+        categoryRepository.save(patisseriesDM);
+
         ProductCategory rotisCat = new ProductCategory();
         rotisCat.setName("Nos Rôtis");
         rotisCat.setDescription("Délicieux rôtis préparés avec soin.");
@@ -383,6 +425,7 @@ public class DataInitializer implements CommandLineRunner {
         rotisCat.setDisplayOrder(1);
         rotisCat.setSupplierName("Boucherie Divine");
         rotisCat.setSupplierContact("+237 699 99 99 99");
+        rotisCat.setParentCategory(alimentsDM);
         categoryRepository.save(rotisCat);
 
         ProductCategory platsCat = new ProductCategory();
@@ -392,6 +435,7 @@ public class DataInitializer implements CommandLineRunner {
         platsCat.setDisplayOrder(2);
         platsCat.setSupplierName("Marché Central de Douala");
         platsCat.setSupplierContact("+237 677 77 77 77");
+        platsCat.setParentCategory(alimentsDM);
         categoryRepository.save(platsCat);
 
         ProductCategory fruitsCat = new ProductCategory();
@@ -401,7 +445,18 @@ public class DataInitializer implements CommandLineRunner {
         fruitsCat.setDisplayOrder(3);
         fruitsCat.setSupplierName("Verger du Noun");
         fruitsCat.setSupplierContact("+237 655 55 55 55");
+        fruitsCat.setParentCategory(patisseriesDM);
         categoryRepository.save(fruitsCat);
+
+        ProductCategory boissonsCat = new ProductCategory();
+        boissonsCat.setName("Boissons Fraîches");
+        boissonsCat.setDescription("Boissons locales et sodas.");
+        boissonsCat.setRestaurant(epieurien);
+        boissonsCat.setDisplayOrder(4);
+        boissonsCat.setSupplierName("Brasseries du Cameroun");
+        boissonsCat.setSupplierContact("+237 333 33 33 33");
+        boissonsCat.setParentCategory(boissonsDM);
+        categoryRepository.save(boissonsCat);
 
         // Products
         Product rotiPorc = new Product();
@@ -443,6 +498,26 @@ public class DataInitializer implements CommandLineRunner {
         assietteFruits.setStockQuantity(15);
         assietteFruits.setImageUrl("/images/fruit DM.jpg");
         productRepository.save(assietteFruits);
+
+        Product jusFolere = new Product();
+        jusFolere.setName("Jus de Foléré DM");
+        jusFolere.setDescription("Jus d'hibiscus fait maison, parfumé à la menthe et à l'ananas.");
+        jusFolere.setPrice(1000.0);
+        jusFolere.setCategory(boissonsCat);
+        jusFolere.setRestaurant(epieurien);
+        jusFolere.setStockQuantity(50);
+        jusFolere.setBeverage(true);
+        productRepository.save(jusFolere);
+
+        Product eauMinerale = new Product();
+        eauMinerale.setName("Eau Minérale Semme");
+        eauMinerale.setDescription("Eau minérale naturelle locale (1.5L).");
+        eauMinerale.setPrice(500.0);
+        eauMinerale.setCategory(boissonsCat);
+        eauMinerale.setRestaurant(epieurien);
+        eauMinerale.setStockQuantity(100);
+        eauMinerale.setBeverage(true);
+        productRepository.save(eauMinerale);
 
         // Dining Tables for Divine Mère
         for (int i = 1; i <= 4; i++) {
