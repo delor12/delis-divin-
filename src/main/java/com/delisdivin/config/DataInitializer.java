@@ -146,7 +146,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Gérant (Admin) - Divine Mère
         AppUser gerantDM = new AppUser();
-        gerantDM.setUsername("loutse_mbang");
+        gerantDM.setUsername("loutse.mbang@divinemere.com");
         gerantDM.setEmail("loutse.mbang@divinemere.com");
         gerantDM.setPassword(defaultPassword);
         gerantDM.setFirstName("Loutse");
@@ -159,7 +159,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Serveur (Waiter) - Divine Mère
         AppUser serveurDM = new AppUser();
-        serveurDM.setUsername("floriane_serveuse");
+        serveurDM.setUsername("floriane.serveuse@divinemere.com");
         serveurDM.setEmail("floriane.serveuse@divinemere.com");
         serveurDM.setPassword(defaultPassword);
         serveurDM.setFirstName("Floriane");
@@ -172,7 +172,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Chef - Divine Mère
         AppUser chefDM = new AppUser();
-        chefDM.setUsername("carelle_divinemere");
+        chefDM.setUsername("carelle@divinemere.com");
         chefDM.setEmail("carelle@divinemere.com");
         chefDM.setPassword(defaultPassword);
         chefDM.setFirstName("Carelle");
@@ -185,7 +185,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Caissier - Divine Mère
         AppUser caissierDM = new AppUser();
-        caissierDM.setUsername("floriane_caissiere");
+        caissierDM.setUsername("floriane.caissiere@divinemere.com");
         caissierDM.setEmail("floriane.caissiere@divinemere.com");
         caissierDM.setPassword(defaultPassword);
         caissierDM.setFirstName("Floriane");
@@ -198,7 +198,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Livreur - Divine Mère
         AppUser livreurDM = new AppUser();
-        livreurDM.setUsername("livreur_divinemere");
+        livreurDM.setUsername("livreur@divinemere.com");
         livreurDM.setEmail("livreur@divinemere.com");
         livreurDM.setPassword(defaultPassword);
         livreurDM.setFirstName("Cheikh");
@@ -213,7 +213,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Deuxième Livreur - Divine Mère (plus éloigné pour les tests de proximité)
         AppUser livreur2DM = new AppUser();
-        livreur2DM.setUsername("livreur2_divinemere");
+        livreur2DM.setUsername("livreur2@divinemere.com");
         livreur2DM.setEmail("livreur2@divinemere.com");
         livreur2DM.setPassword(defaultPassword);
         livreur2DM.setFirstName("Mamadou");

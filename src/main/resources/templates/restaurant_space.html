@@ -664,6 +664,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(orderPayload)
+            })
             .then(res => {
                 if (!res.ok) {
                     return res.json().then(err => { throw new Error(err.message || "Erreur lors de la commande"); });
